@@ -16,3 +16,7 @@ Read README.md first: it is the implementation plan and milestone record.
   separately from network reliability. Do not claim quotas or speed from one run
   as guarantees for every song.
 - Update milestone checkboxes only after the corresponding work is verified.
+- The owner requested a live single-song test before Spotify. The protected
+  `/?live` flow fetches LRCLIB record 13013538 at runtime and uses one-minute
+  bounded AI batches. Keep the public static excerpt at `/` and the full source
+  out of Git. Follow README setup instructions for its AI/D1 bindings and secret.

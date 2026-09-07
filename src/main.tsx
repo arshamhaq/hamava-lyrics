@@ -7,10 +7,11 @@ import '@fontsource/manrope/latin-500.css'
 import '@fontsource/manrope/latin-600.css'
 import '@fontsource/manrope/latin-700.css'
 import App from './App'
+import LiveTest from './LiveTest'
 import './styles.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    {new URLSearchParams(location.search).has('live') ? <LiveTest /> : <App />}
   </React.StrictMode>,
 )

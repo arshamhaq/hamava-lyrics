@@ -7,6 +7,126 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Current milestone: one-song live conversion test
+
+The static preview is deployed at
+[hamava-lyrics.arshamhaqiqat.workers.dev](https://hamava-lyrics.arshamhaqiqat.workers.dev/).
+The owner confirmed it opens successfully; an independent HTTP check returned 200.
+We are bringing forward a slice of milestone 3 before connecting Spotify:
+**LRCLIB → one-minute lyric sections → Workers AI → incremental Finglish**.
+
+The new test code is ready locally at `/?live`. Deployment of this update and
+real Workers AI pronunciation/latency acceptance remain pending. The original
+static preview is still available at `/`. No Spotify login or audio playback is
+implemented in this test.
+
+### Deploy the live test
+
+1. Edit the existing **Hamava deployment** token in
+   [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens).
+   Add **Account → D1 → Edit**, retaining Workers Scripts Edit and Account
+   Settings Read, all scoped to the same account. The Worker uses an AI binding,
+   so no Workers AI API token is stored in browser code or the Worker.
+2. Keep the account on Workers Free. Run:
+
+   ```bash
+   cd /home/arsham/finglish-lyrics
+   npm run setup:live
+   ```
+
+3. The helper builds first, asks for the Account ID and hidden deployment token,
+   then asks you to choose and repeat a **separate app test passphrase** of
+   16–256 characters. Keep that passphrase privately for opening the live test.
+   These credentials are not saved locally. The app passphrase is uploaded as
+   the Cloudflare Worker secret `TEST_ACCESS_KEY`.
+4. The helper creates or reuses `hamava-lyrics-cache`, records its non-secret D1
+   ID in `wrangler.jsonc`, applies the database migration, sets the passphrase,
+   and deploys the Worker plus the PWA. Existing cached conversions are retained.
+   If a step fails, it stops; fix the reported issue and rerun the same command.
+5. Open
+   [the live test](https://hamava-lyrics.arshamhaqiqat.workers.dev/?live).
+   Refresh/accept the PWA update if necessary. Enter the **app test passphrase**,
+   not your Cloudflare token. The URL will only show this feature after deployment.
+
+For normal code updates after setup, use `npm run deploy:token`. For a new schema
+migration or a passphrase change, rerun `npm run setup:live`. Commit the updated
+database ID in `wrangler.jsonc`; it is configuration, not a credential.
+
+### What to try and measure
+
+- Start the test. Persian timestamps load first; Finglish sections arrive one at
+  a time. Conversion starts while the silent clock is paused, so press Play when
+  ready. It processes ahead without waiting a full minute between API calls.
+- The pinned LRCLIB recording is **13013538**, Gharibe Ashena / Googoosh / Kooh,
+  duration **3:57**, checked on 2026-09-08. It has 28 sung lines plus instrumental
+  markers. Its first lyric begins at **0:27.17**. The opening displays Instrumental.
+- The four batches start at **0:27.17, 1:02.60, 2:14.66, and 3:13.70**, with
+  **6 / 8 / 8 / 6 lines**. Lines are assigned by their original start timestamp;
+  a line may continue across a minute boundary. Dense minutes split further at
+  ten lines or 1,200 source characters. No line is cut in half.
+- Before everything finishes, jump to section 4. Copy is disabled until the
+  selected line is ready. The current request finishes first; section 4 becomes
+  the next request. Returning to a completed section is immediate.
+- Completed text stays in the scrolling lyrics view. Highlight following scrolls
+  that panel, not the entire page. Copy always uses the current completed line.
+- A failed batch pauses scheduling. Retry that section explicitly, or continue
+  other sections. Completed results are retained. Network timeouts can leave
+  server processing uncertain; wait up to three minutes before retrying.
+- Expand **Test timings and source** to record each batch's original generation
+  time and neurons, if the binding returns usage. Reload and check that completed
+  sections return from D1 without another AI call. Timing shown for cached output
+  is its original generation time, not this visit's download latency.
+- Live data requires a connection after reload. Already loaded lines remain in
+  memory when connectivity drops; the original static preview still works offline.
+  Persistent private lyrics storage on the phone remains a later milestone.
+
+### Worker behavior and limits
+
+All `/api/*` requests run through the Worker before static asset routing. They
+require the private test passphrase, sent in an Authorization header, and use
+`Cache-Control: no-store`. The UI keeps the passphrase only in memory until lock,
+navigation, or reload. This is temporary single-owner test access, not the final
+Spotify customer-authentication implementation.
+
+Only the pinned source record and server-defined batch IDs are accepted. The
+browser cannot submit arbitrary prompts or lyric text to the AI. The v4 prompt,
+Qwen3.8 model and earlier sampling settings remain unchanged. Blank instrumental
+markers and all timestamps stay outside the model. Missing/extra/duplicate IDs,
+reordered IDs, Persian output, malformed JSON and truncated completions are rejected.
+This checks structure, not whether the pronunciation is correct.
+
+D1 stores the source for 24 hours and completed conversions by source content,
+recording, model, prompt, parameters and batching version. An atomic database
+lease prevents concurrent tabs from starting the same batch. Other tabs poll
+the cache without making additional inference calls. Failure/timeout leases last
+three minutes; incomplete results are never saved as successful batches.
+
+An atomic **24 AI-attempt cap per UTC day** includes failures and retries. It is
+shared by all users of this test and survives redeployment. Cache reads do not
+consume attempts. This is a conservative experiment guard, not an exact neuron
+budget or a guarantee about all account usage. Workers AI's own Free quota still
+applies; do not upgrade to paid usage for this experiment. Other apps on the
+account can consume that same provider quota.
+
+Validation: 12 timeline/parser/Worker tests and 10 desktop/mobile browser checks
+pass, including real SQLite lease/cache/budget operations and simulated slow or
+failed AI responses. Production build and Worker deployment dry run pass.
+The LRCLIB recording was fetched live; **no new real AI call has been made by
+these automated tests**. The next acceptance step is your authenticated deployment
+and review of the real generated lines and timing.
+
+Local development: `npm run dev` serves the UI and proxies `/api` to port 8787.
+`npm run preview` alone serves assets and does not run the Worker API. To run the
+real Worker locally, configure a private ignored `.dev.vars` with
+`TEST_ACCESS_KEY`, apply `npm run db:local`, and run `npm run dev:worker` in another
+terminal with Cloudflare authentication available. The AI binding can call the
+remote service even during local development and consume quota. Automated tests
+use synthetic source lines and mocked AI instead.
+
+References: [AI bindings](https://developers.cloudflare.com/workers-ai/configuration/bindings/),
+[API routing before assets](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/),
+[D1 token permission](https://developers.cloudflare.com/d1/tutorials/import-to-d1-with-rest-api/).
+
 ## What you can see first
 
 Milestone 1 is a responsive, installable static preview. It has an original
@@ -60,7 +180,7 @@ The first deployment uses **Workers Static Assets**, which serves this app at:
 https://hamava-lyrics.<YOUR-WORKERS-SUBDOMAIN>.workers.dev
 ```
 
-This is a URL pattern, **not a provisioned/live address**. Cloudflare prints the
+The account-specific live address is recorded above. Cloudflare prints the
 actual URL after a successful deploy. The `hamava-lyrics` part is the `name` in
 `wrangler.jsonc`; the account subdomain is configured in Cloudflare. You do not
 need to purchase a domain or rent a server. Static asset requests and storage are
@@ -184,19 +304,20 @@ dependency licenses, and rewrite this README as public product documentation.
 | --- | --- | --- | --- |
 | 1 · See it on the phone | PWA scaffold, design, demo clock, highlight/copy, offline shell, Cloudflare config, private-repo setup | Production build passes; preview usable at phone widths; copy matches highlight; actual HTTPS deployment opens on customer phone | Week 1 |
 | 2 · Connect Spotify | Register developer app, PKCE, state verification, exact callback, minimal playback scope, token refresh, polling and local clock | Login on laptop and real phone; track/position update; pause, seek, skip, resume after app switch; no password handled by us | Week 1 |
-| 3 · Find and convert | LRCLIB lookup and recording matching; Qwen3.8 through Worker AI binding; three sequential batches; D1 batch cache | Show first completed batch; prioritize the current playback position; retry only failed batch; strict IDs and timing; switch track without stale lyrics | Week 2 |
+| 3 · Find and convert | LRCLIB lookup and recording matching; Qwen3.8 through Worker AI binding; bounded time sections; D1 batch cache | Show first completed batch; prioritize the current playback position; retry only failed batch; strict IDs and timing; switch track without stale lyrics | Week 2 |
 | 4 · Make it dependable | Edits, device cache, delay adjustment, failure states, budget guard, phone refinements and handoff | Acceptance session with customer's songs, install/reopen, poor network, quota exhausted, revoked Spotify login, corrected line persists | Weeks 3–4 |
 
-Milestone 1 code is implemented in this scaffold. Deployment and customer-device
-acceptance remain open until completed on the authenticated account and device.
-Milestones 2–4 are planned; there is no live Spotify or AI integration yet.
+Milestone 1 is deployed and the owner reports it works. Full customer-device
+acceptance and GitHub setup remain open. The one-song slice of milestone 3 is
+implemented locally ahead of milestone 2, as requested. Spotify remains planned.
 
 Verified locally on 2026-09-08: three timeline tests and six Chromium browser
 checks passed, TypeScript and the production build passed, and the Cloudflare
 deployment dry run passed. Desktop and phone screenshots were visually reviewed.
 The browser checks exercised clipboard contents, playback/seek/end behavior,
 saved state, dialogs, focus view, viewport fit, manifest, and offline reload.
-Cloudflare login and private GitHub repository creation are still pending.
+OAuth login failed; token-based static deployment succeeded. Private GitHub
+repository creation is still pending.
 
 ## Architecture we agreed to
 
@@ -211,18 +332,18 @@ Phone PWA
        └─ Workers AI: Qwen3.8-27B, thinking disabled
             first relevant batch → save + display
             next batch → save + display
-            final batch → save + display
+            remaining batches → save + display
 ```
 
 - Frontend: React + TypeScript + Vite. Same web code for iPhone, Android, laptop.
 - Hosting: Cloudflare Workers Static Assets on its free HTTPS domain.
-- Backend later: one Worker API with AI and D1 bindings. Keep paid services off.
+- Backend: one Worker API with AI and D1 bindings for the one-song test. Keep paid services off.
 - Lyrics: LRCLIB first. Best-effort catalog coverage; no universal-song promise.
 - Model: `@cf/qwen/qwen3.8-27b`, `chat_template_kwargs.enable_thinking: false`.
 - Baseline prompt: v4. Temperature 0.7, top_p 0.8, 900 output-token cap per test
   batch. Version prompt/model in cache keys. Tune through separate controlled tests.
   The exact successful prompt is preserved in [docs/finglish-prompt-v4.txt](docs/finglish-prompt-v4.txt).
-  It is a research baseline, not loaded into the static preview.
+  The server loads it for the live test; it is not bundled into the browser.
 - Preserve recording timestamps and blank instrumental markers outside the model.
   Send numbered text only. Validate every expected ID exactly once; no missing,
   reordered, extra, blank, or truncated output. Reattach timestamps in code.

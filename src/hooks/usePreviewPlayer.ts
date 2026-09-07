@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clockPosition } from '../lib/timeline'
 
-export function usePreviewPlayer(durationMs: number) {
-  const [positionMs, setPositionMs] = useState(8_000)
+export function usePreviewPlayer(durationMs: number, initialPositionMs = 8_000) {
+  const [positionMs, setPositionMs] = useState(initialPositionMs)
   const [playing, setPlaying] = useState(false)
-  const anchor = useRef({ position: 8_000, time: 0 })
+  const anchor = useRef({ position: initialPositionMs, time: 0 })
 
   useEffect(() => {
     if (!playing) return

@@ -168,6 +168,7 @@ export default function App() {
           </button>
         </section>
 
+        <a className="live-test-link" href="/?live">Try the live Finglish test <ArrowRight size={15} /></a>
         <section className="listening-room" aria-label="Listening room">
           <aside className="record-panel">
             <div className="panel-kicker">
