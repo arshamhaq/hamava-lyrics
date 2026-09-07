@@ -108,6 +108,39 @@ deployment and browser permissions. [Cloudflare setup](https://developers.cloudf
 [static pricing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/),
 [workers.dev domains](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
 
+## If Cloudflare login returns a 403 bot challenge
+
+The first login attempt on this laptop reached the OAuth token exchange, but
+`dash.cloudflare.com/oauth2/token` returned an HTML bot challenge instead of JSON.
+This is an authentication/network failure; changing the PWA does not fix it.
+The log does not establish why Cloudflare challenged this connection.
+
+Use a deployment API token as the supported alternative:
+
+1. Open [My Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens).
+   Select Create Token → Create Custom Token, and name it `Hamava deployment`.
+2. Add **Account → Workers Scripts → Edit** and
+   **Account → Account Settings → Read**. Under Account Resources, select
+   **Include → Specific account → your intended Cloudflare account**.
+   This static workers.dev deployment needs no zone/DNS or Workers AI permissions.
+3. Create the token and keep it privately. The earlier AI-only token is not a
+   deployment token. Copy your Account ID from the Cloudflare dashboard too.
+4. Run `npm run deploy:token`. It builds first, then asks for the Account ID and
+   hidden token. Paste the token at that prompt, not into a command or chat.
+   The helper does not write credentials to disk or your shell history, and
+   passes them to Wrangler through its supported environment variables.
+5. Open the printed workers.dev URL and share the URL or error output for review.
+   For subsequent uploads, run the same command and enter the credentials again.
+
+This avoids the failing OAuth exchange; API access can still fail independently.
+If it also receives an HTML challenge, try a different VPN exit/network and retry.
+For persistent challenges, contact Cloudflare with the Ray ID from that attempt.
+Do not treat a JSON permission error as a bot challenge: check token permissions
+and the selected account in that case.
+
+References: [API token authentication](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/),
+[creating scoped tokens](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/).
+
 ## Private GitHub repository
 
 A GitHub **repository** is the privacy boundary, not a folder within a public

@@ -19,7 +19,8 @@
     "cf:login": "wrangler login",
     "cf:whoami": "wrangler whoami",
     "deploy:check": "npm run build && wrangler deploy --dry-run",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:token": "bash scripts/deploy-with-token.sh"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.0",
