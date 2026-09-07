@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#25392f"/><stop offset="1" stop-color="#5b6752"/></linearGradient>
+    <linearGradient id="hill" x2="1" y2="1"><stop stop-color="#77816a"/><stop offset="1" stop-color="#303f34"/></linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".11"/></feComponentTransfer><feBlend in="SourceGraphic" mode="soft-light"/></filter>
+  </defs>
+  <g filter="url(#grain)">
+    <path fill="url(#sky)" d="M0 0h640v640H0z"/>
+    <circle cx="470" cy="223" r="75" fill="#d6c798"/>
+    <path d="M0 487L236 181l115 160 69-71 220 273v97H0z" fill="url(#hill)"/>
+    <path d="M236 181l-50 221 122 102 43-163z" fill="#485743"/>
+    <path d="M236 181l-26 99 27-17 35 36z" fill="#bac0a5" opacity=".7"/>
+    <path d="M0 552l154-73 186 88 131-90 169 65v98H0z" fill="#293c32"/>
+    <path d="M0 605l173-53 202 88H0z" fill="#202f29"/>
+  </g>
+  <g fill="#efe7cf" font-family="Georgia,serif"><text x="42" y="87" font-size="45" letter-spacing="8">GOOGOOSH</text><text x="45" y="117" font-family="sans-serif" font-size="11" letter-spacing="4">A PERSIAN LISTENING SESSION</text><text x="45" y="598" font-size="37" letter-spacing="9">KOOH</text></g>
+  <path d="M42 140h556M42 618h556" stroke="#e6dfc5" stroke-opacity=".4"/>
+</svg>
