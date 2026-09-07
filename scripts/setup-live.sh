@@ -9,9 +9,21 @@ fi
 npm run build
 read -r -p 'Cloudflare Account ID: ' hamava_account_id
 [[ "$hamava_account_id" =~ ^[a-fA-F0-9]{32}$ ]] || { printf '%s\n' 'Invalid account ID.' >&2; exit 1; }
-read -r -s -p 'Deployment API token, including D1 Edit (hidden): ' hamava_deploy_token
-printf '\n'
-[[ -n "$hamava_deploy_token" && ! "$hamava_deploy_token" =~ [[:space:]] ]] || { printf '%s\n' 'Invalid token.' >&2; exit 1; }
+printf '%s\n' 'Use the same deployment token secret after saving Account > D1 > Edit in its Cloudflare permissions.'
+while true; do
+  read -r -s -p 'Paste deployment token secret (not its ID; hidden): ' hamava_deploy_token
+  printf '\n'
+  # Ignore accidental surrounding whitespace without altering the secret itself.
+  hamava_deploy_token="${hamava_deploy_token#"${hamava_deploy_token%%[![:space:]]*}"}"
+  hamava_deploy_token="${hamava_deploy_token%"${hamava_deploy_token##*[![:space:]]}"}"
+  if [[ -z "$hamava_deploy_token" ]]; then
+    printf '%s\n' 'Nothing was pasted. Try again; the terminal will not show the token.' >&2
+  elif [[ "$hamava_deploy_token" =~ [[:space:]] ]]; then
+    printf '%s\n' 'The paste contains spaces inside it. Paste only the token secret, without quotes, Bearer, or a curl command.' >&2
+  else
+    break
+  fi
+done
 read -r -s -p 'Choose the app test passphrase (16–256 characters, hidden): ' hamava_test_key
 printf '\n'
 [[ ${#hamava_test_key} -ge 16 && ${#hamava_test_key} -le 256 ]] || { printf '%s\n' 'Passphrase must have 16–256 characters.' >&2; exit 1; }
