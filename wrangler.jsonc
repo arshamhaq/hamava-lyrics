@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hamava-lyrics",
-  "compatibility_date": "2026-09-08",
+  "compatibility_date": "2026-09-07",
   "workers_dev": true,
   "main": "worker/index.ts",
   "ai": { "binding": "AI" },
@@ -9,8 +9,8 @@
     {
       "binding": "DB",
       "database_name": "hamava-lyrics-cache",
-      // The setup helper replaces this local placeholder after creating your D1 database.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      // Provisioned by setup:live; this database ID is not a secret.
+      "database_id": "927b2aa7-9c36-4439-81bc-ec439c228d54",
       "migrations_dir": "migrations",
     },
   ],
