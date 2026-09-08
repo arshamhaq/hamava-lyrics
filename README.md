@@ -7,7 +7,33 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: compact preview and visual polish (v0.4.1)
+## Current milestone: readable controls and short intro animation (v0.4.2)
+
+The example card now runs once for about 2.5 seconds of visible animation and
+stops on Finglish. **Replay** starts another pass; dragging or Pause stops it.
+Offscreen/hidden tabs pause the clock, and reduced motion starts still.
+
+Small invitation/tip labels are 1–2 pixels larger. Finglish is 2 pixels larger
+in normal mode; Aa's larger mode gains 4 pixels over the previous release.
+Copy has a larger filled button with a larger icon and at least a 46-pixel
+height. **Follow current line** stays above the lyric list with a 44-pixel target
+and its own drawn guide. Browsing away changes its appearance; pressing it
+recenters the current lyric without seeking the music. Hide tips removes all
+five guide arrows.
+
+The reported Follow → Aa drift was reproduced on both desktop and mobile with
+normal motion enabled. The old font-size transition kept changing line geometry
+after the scroll position was calculated. Lyric sizes now change immediately,
+and layout centering uses the final geometry before painting. Regression checks
+cover Aa in both directions, the Persian toggle and repeated Follow presses.
+
+Validation for v0.4.2: 12 unit/Worker tests, production build and 40 browser
+checks. Deployment and real-phone review remain the owner's next steps.
+Run `npm run dev`, try Follow → Aa on your phone, and check that the highlighted
+line stays centered. Deploy with `npm run deploy:token` when satisfied, then
+accept **Reload app** and confirm **v0.4.2** in the footer.
+
+## Compact preview and visual polish (v0.4.1)
 
 The phone layout keeps the script comparison in a small corner beside the
 heading, labeled **Example only**. It sweeps automatically between Persian and
