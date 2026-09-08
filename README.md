@@ -9,6 +9,13 @@ Budget: $300 including labor and software; delivery target: one month.
 
 ## UI refinement and reliable PWA updates
 
+Light/dark mode follows the device initially. The header toggle saves an explicit
+choice on this device, shared by the preview and live-test screens. An early
+theme script applies it before React starts, avoiding a bright flash on reload.
+Surfaces, controls, notices and dialogs use indigo/lavender color tokens.
+Verified: 12 unit/Worker checks and 10 theme/update browser checks across desktop
+and mobile Chromium, with real service-worker lifecycle checks also in Firefox.
+
 The owner has paused the Qwen experiment while awaiting access to the gated
 Negara G2P model. Do not integrate or deploy a replacement inference model before
 its pronunciation and browser performance are reviewed. Current work is UI and

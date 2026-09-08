@@ -1,0 +1,20 @@
+// Runs before the stylesheet/React so a saved dark theme never flashes light.
+;(() => {
+  let saved
+  try {
+    saved = localStorage.getItem('hamava:theme')
+  } catch {
+    /* Storage can be disabled. */
+  }
+  const theme =
+    saved === 'light' || saved === 'dark'
+      ? saved
+      : matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+  document.documentElement.dataset.theme = theme
+  document.documentElement.style.colorScheme = theme
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', theme === 'dark' ? '#11101b' : '#f7f5f2')
+})()

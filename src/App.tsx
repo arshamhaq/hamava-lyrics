@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { UpdateCheck } from './components/AppUpdates'
+import { ThemeToggle } from './components/ThemeToggle'
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -140,10 +141,13 @@ export default function App() {
           </span>
         </a>
         <span className="header-note">A little closer to the lyrics.</span>
-        <button className="install-button" onClick={install}>
-          <ArrowDownToLine size={15} />
-          <span>Get the app</span>
-        </button>
+        <div className="header-actions">
+          <ThemeToggle />
+          <button className="install-button" onClick={install}>
+            <ArrowDownToLine size={15} />
+            <span>Get the app</span>
+          </button>
+        </div>
       </header>
 
       <main className="main-shell">
