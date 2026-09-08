@@ -14,9 +14,9 @@ test('example animates, pauses on interaction and stays compact on phones', asyn
   const paused = await slider.inputValue()
   await page.waitForTimeout(250)
   expect(await slider.inputValue()).toBe(paused)
-  await page.getByRole('button', { name: 'Play card animation' }).click()
+  await page.getByRole('button', { name: 'Replay card animation' }).click()
   await slider.fill('25')
-  await expect(page.getByRole('button', { name: 'Play card animation' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Replay card animation' })).toBeVisible()
   await page.waitForTimeout(150)
   await expect(slider).toHaveValue('25')
   if (info.project.name === 'mobile') {
@@ -26,7 +26,7 @@ test('example animates, pauses on interaction and stays compact on phones', asyn
     expect(card.height).toBeLessThan(150)
     expect(card.x).toBeGreaterThan(heading.x + heading.width - 1)
   }
-  await page.getByRole('button', { name: 'Play card animation' }).click()
+  await page.getByRole('button', { name: 'Replay card animation' }).click()
   await page.getByRole('link', { name: /First time/ }).click()
   await expect
     .poll(async () => (await page.locator('.script-lens').boundingBox())!.y)
@@ -82,10 +82,30 @@ test('reduced motion keeps the example still and the teaching player fully visib
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
   const slider = page.getByRole('slider', { name: 'Reveal Finglish' })
-  await expect(page.getByRole('button', { name: 'Play card animation' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Replay card animation' })).toBeVisible()
   const value = await slider.inputValue()
   await page.waitForTimeout(250)
   expect(await slider.inputValue()).toBe(value)
   await expect(page.locator('.demo-content')).toHaveCSS('opacity', '1')
   await expect(page.locator('.sketch-arrow')).toHaveCount(4)
+})
+
+test('card finishes its short pass and stays still until replayed', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/')
+  const slider = page.getByRole('slider', { name: 'Reveal Finglish' })
+  await expect(page.getByRole('button', { name: 'Pause card animation' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Replay card animation' })).toBeVisible({
+    timeout: 4000,
+  })
+  await expect(slider).toHaveValue('100')
+  await page.waitForTimeout(400)
+  await expect(slider).toHaveValue('100')
+  await page.getByRole('button', { name: 'Replay card animation' }).click()
+  await expect(page.getByRole('button', { name: 'Pause card animation' })).toBeVisible()
+  await expect.poll(async () => Number(await slider.inputValue())).toBeLessThan(45)
+  await expect(page.getByRole('button', { name: 'Replay card animation' })).toBeVisible({
+    timeout: 4000,
+  })
+  await expect(slider).toHaveValue('100')
 })
