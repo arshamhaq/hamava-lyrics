@@ -15,5 +15,10 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1120 } },
     },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    {
+      name: 'firefox',
+      testMatch: '**/app-updates.spec.ts',
+      use: { ...devices['Desktop Firefox'] },
+    },
   ],
 })

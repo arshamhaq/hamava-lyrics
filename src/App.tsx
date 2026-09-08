@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useRegisterSW } from 'virtual:pwa-register/react'
+import { UpdateCheck } from './components/AppUpdates'
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -64,10 +64,6 @@ export default function App() {
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW()
 
   useEffect(() => {
     const install = (event: Event) => {
@@ -168,7 +164,9 @@ export default function App() {
           </button>
         </section>
 
-        <a className="live-test-link" href="/?live">Try the live Finglish test <ArrowRight size={15} /></a>
+        <a className="live-test-link" href="/?live">
+          Try the live Finglish test <ArrowRight size={15} />
+        </a>
         <section className="listening-room" aria-label="Listening room">
           <aside className="record-panel">
             <div className="panel-kicker">
@@ -383,14 +381,6 @@ export default function App() {
             You’re offline. Your saved preview is still here.
           </div>
         )}
-        {needRefresh && (
-          <div className="notice">
-            A fresh version is ready.
-            <button onClick={() => updateServiceWorker(true)}>
-              Update Hamava <ArrowRight size={14} />
-            </button>
-          </div>
-        )}
         <section className="little-details" aria-label="About the experience">
           <span>THE LITTLE THINGS</span>
           <div>
@@ -415,6 +405,7 @@ export default function App() {
           A note about Hamava <ArrowRight size={13} />
         </button>
       </footer>
+      <UpdateCheck />
       <div className={`toast ${toast ? 'visible' : ''}`} role="status" aria-live="polite">
         {toast}
       </div>

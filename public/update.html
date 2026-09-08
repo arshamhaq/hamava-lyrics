@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Update Hamava</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, sans-serif;
+      background: #151322;
+      color: #eeeafa;
+    }
+    body {
+      max-width: 460px;
+      margin: 12vh auto;
+      padding: 24px;
+      line-height: 1.7;
+    }
+    h1 {
+      letter-spacing: -1px;
+    }
+    button,
+    a {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      background: #c7b4ff;
+      color: #201436;
+      border: 0;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+    }
+    small {
+      display: block;
+      margin-top: 22px;
+      color: #c5bdd6;
+    }
+  </style>
+  <h1>Update Hamava</h1>
+  <p>This page loads directly from the server, even if an older app version is cached.</p>
+  <p>
+    Repair removes Hamava’s downloaded app files. Your saved-song marker and theme preference stay
+    on this device. You’ll need a connection to download the app again.
+  </p>
+  <button id="repair">Repair and reload</button>
+  <p id="message" role="status"></p>
+  <a id="reopen" href="/" hidden>Open Hamava</a>
+  <small>If the old version persists, close all other Hamava tabs, then open the app again.</small>
+  <script>
+    document.getElementById('repair').onclick = async () => {
+      const button = document.getElementById('repair'),
+        message = document.getElementById('message')
+      if (!navigator.onLine) {
+        message.textContent = 'Connect to the internet before repairing.'
+        return
+      }
+      button.disabled = true
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations()
+          await Promise.all(
+            registrations
+              .filter((reg) => reg.scope === location.origin + '/')
+              .map((reg) => reg.unregister()),
+          )
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys()
+          await Promise.all(
+            keys
+              .filter((key) => key.startsWith('workbox-precache-') || key.startsWith('hamava-'))
+              .map((key) => caches.delete(key)),
+          )
+        }
+        message.textContent = 'App cache repaired. Opening the latest version…'
+        document.getElementById('reopen').hidden = false
+        location.replace('/?updated=' + Date.now())
+      } catch {
+        message.textContent =
+          'The browser could not repair the cache. Close other Hamava tabs and try again.'
+        button.disabled = false
+      }
+    }
+  </script>
+</html>

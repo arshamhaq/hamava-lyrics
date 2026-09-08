@@ -9,3 +9,6 @@
 
 /index.html
   Cache-Control: no-cache
+
+/update.html
+  Cache-Control: no-store

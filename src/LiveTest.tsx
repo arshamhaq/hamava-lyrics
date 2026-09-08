@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useRegisterSW } from 'virtual:pwa-register/react'
+import { UpdateCheck } from './components/AppUpdates'
 import { ArrowLeft, Check, Copy, LockKeyhole, Pause, Play, LoaderCircle } from 'lucide-react'
 import { currentBatch, currentLine, type SongResponse } from '../shared/lyrics'
 import { api, useLiveLyrics } from './hooks/useLiveLyrics'
@@ -7,10 +7,6 @@ import { usePreviewPlayer } from './hooks/usePreviewPlayer'
 import { formatTime } from './lib/timeline'
 
 export default function LiveTest() {
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW()
   const [key, setKey] = useState('')
   const [draft, setDraft] = useState('')
   const [initial, setInitial] = useState<SongResponse | null>(null)
@@ -44,12 +40,6 @@ export default function LiveTest() {
         </a>
       </header>
       <main className="main-shell">
-        {needRefresh && (
-          <div className="notice">
-            An update is ready.
-            <button onClick={() => updateServiceWorker(true)}>Update Hamava</button>
-          </div>
-        )}
         <section className="intro">
           <div>
             <div className="eyebrow">THE NEXT VERSE</div>
@@ -106,6 +96,7 @@ export default function LiveTest() {
         <span>هم‌آوا · In the same voice.</span>
         <span>Personal experiment</span>
       </footer>
+      <UpdateCheck />
     </div>
   )
 }

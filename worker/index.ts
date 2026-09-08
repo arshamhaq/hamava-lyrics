@@ -245,6 +245,15 @@ export default {
     ctx: { waitUntil(promise: Promise<unknown>): void },
   ): Promise<Response> {
     const url = new URL(request.url)
+    // This path is excluded from even the first shipped SW's navigation cache.
+    // It serves only a static repair page and never touches lyrics, AI, or secrets.
+    if (url.pathname === '/api/app-update' && request.method === 'GET') {
+      const assetUrl = new URL('/update.html', url.origin)
+      const asset = await env.ASSETS.fetch(new Request(assetUrl, { method: 'GET' }))
+      const response = new Response(asset.body, asset)
+      response.headers.set('Cache-Control', 'no-store')
+      return response
+    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request)
     try {
       if (!env.TEST_ACCESS_KEY || env.TEST_ACCESS_KEY.length < 16)

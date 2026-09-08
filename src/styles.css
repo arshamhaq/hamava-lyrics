@@ -1,4 +1,72 @@
 @charset "UTF-8";
+.update-check {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 0 0 24px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.update-check button,
+.update-check a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: inherit;
+}
+.update-check-message {
+  flex-basis: 100%;
+  text-align: center;
+}
+.app-update-banner {
+  position: fixed;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(680px, calc(100% - 32px));
+  padding: 18px;
+  background: var(--paper);
+  color: var(--green);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 60px #0003;
+}
+.app-update-banner > div {
+  flex: 1;
+}
+.app-update-banner strong {
+  display: block;
+  font-size: 14px;
+}
+.app-update-banner span {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.update-apply {
+  background: var(--green);
+  color: var(--paper);
+  border-radius: 8px;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+@media (max-width: 500px) {
+  .app-update-banner {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .app-update-banner > div {
+    flex-basis: calc(100% - 40px);
+  }
+  .update-apply {
+    flex: 1;
+  }
+}
 .live-test-link {
   display: flex;
   align-items: center;

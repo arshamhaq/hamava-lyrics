@@ -7,6 +7,42 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## UI refinement and reliable PWA updates
+
+The owner has paused the Qwen experiment while awaiting access to the gated
+Negara G2P model. Do not integrate or deploy a replacement inference model before
+its pronunciation and browser performance are reviewed. Current work is UI and
+PWA maintenance; it does not make AI calls.
+
+The app now checks for a service-worker update when opened, when returning to the
+foreground, after reconnecting, and every minute while visible. Update-script
+requests bypass the HTTP cache. A fixed **Reload app** notice replaces the
+easy-to-miss inline notice. Reload is explicit because it clears the in-memory
+live-test session. The footer shows the release number and **Check for updates**.
+
+For a browser stuck on a version that predates these controls, deploy this update
+then open [the recovery page](https://hamava-lyrics.arshamhaqiqat.workers.dev/api/app-update).
+That path bypasses even the first version's app navigation cache. **Repair and
+reload** removes Hamava's service-worker registrations and downloaded app files,
+preserving localStorage settings such as the saved-song marker and theme. It
+requires a connection. No API token, app passphrase, D1 access or AI call is
+needed. This page intentionally is not precached.
+
+Ordinary reloads can continue using an installed service worker while a newer
+worker waits for existing tabs to release control. Offline caching is useful;
+reliable discovery and activation are the missing pieces we are fixing. Firefox's
+specific old state cannot be inspected remotely, so do not claim its exact cause
+was proven from the user report alone.
+
+Browser regression tests serve two actual app releases from a local HTTP server.
+They verify detection, explicit activation, offline loading of the new release,
+and recovery without losing saved settings. Firefox has its own update-test
+project; install its browser with `npx playwright install firefox`.
+
+Keep update, theme, layout/copy, and logo-review work in separate Git commits so
+each decision can be reverted independently. Logo concepts are for approval only;
+do not replace the manifest, favicon, or iPhone home-screen icon before approval.
+
 ## Current milestone: one-song live conversion test
 
 The static preview is deployed at
