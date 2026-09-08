@@ -11,7 +11,7 @@ test('follows the device until an explicit theme is chosen, and keeps it on both
   await page.getByRole('button', { name: 'Switch to dark mode' }).click()
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#11101b')
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0b1222')
   await page.screenshot({
     path: `test-results/hamava-dark-${test.info().project.name}.png`,
     fullPage: true,

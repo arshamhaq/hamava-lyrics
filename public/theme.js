@@ -16,5 +16,5 @@
   document.documentElement.style.colorScheme = theme
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#11101b' : '#f7f5f2')
+    ?.setAttribute('content', theme === 'dark' ? '#0b1222' : '#eee9e1')
 })()

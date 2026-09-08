@@ -1,14 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Radio,
-  Search,
-  X,
-} from 'lucide-react'
+import { ArrowDown, ArrowDownToLine, ArrowLeft, ArrowRight, Check, Search, X } from 'lucide-react'
 import { UpdateCheck } from './components/AppUpdates'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Brand } from './components/Brand'
@@ -70,8 +61,18 @@ export default function App() {
               <ArrowLeft size={16} />
               Home
             </a>
-            <div className="mode-symbol">
-              {mode === 'spotify' ? <Radio size={28} /> : <Search size={28} />}
+            <div className={`mode-symbol mode-${mode}`}>
+              {mode === 'spotify' ? (
+                <img
+                  className="spotify-mark"
+                  src="/spotify-icon-black.png"
+                  width="34"
+                  height="34"
+                  alt=""
+                />
+              ) : (
+                <Search size={28} />
+              )}
             </div>
             <span className="preview-pill">Coming next</span>
             <h1 id="route-title">{mode === 'spotify' ? 'Spotify sync' : 'Search a song'}</h1>
@@ -106,7 +107,13 @@ export default function App() {
               <div className="mode-choices" aria-label="Choose how to listen">
                 <a className="mode-card sync-card" href="/spotify">
                   <span className="mode-icon">
-                    <Radio size={25} />
+                    <img
+                      className="spotify-mark"
+                      src="/spotify-icon-black.png"
+                      width="34"
+                      height="34"
+                      alt=""
+                    />
                   </span>
                   <span className="mode-card-text">
                     <small>AUTOMATIC SYNC</small>

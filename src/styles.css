@@ -1586,34 +1586,34 @@ dialog::backdrop {
 
 :root {
   color-scheme: light;
-  --paper: #f7f5f2;
-  --ink: #272334;
-  --accent: #6550a5;
-  --surface: #fffdfa;
-  --surface-soft: #efecf5;
-  --accent-soft: #e9e2f7;
-  --muted: #756e83;
-  --line: #e1dce7;
-  --line-strong: #bcb2ce;
+  --paper: #eee9e1;
+  --ink: #202c3d;
+  --accent: #66518f;
+  --surface: #faf6ef;
+  --surface-soft: #e1e8eb;
+  --accent-soft: #e4dbef;
+  --muted: #636a78;
+  --line: #cfd8df;
+  --line-strong: #a5b6c5;
   --focus: #8562d3;
   --error: #a13644;
   --saved: #a34875;
-  --on-accent: #fffdfa;
+  --on-accent: #faf6ef;
   --shadow: #34204b16;
   --backdrop: #17122388;
   --glow: #9872da26;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --paper: #11101b;
-  --ink: #eee9f7;
-  --accent: #c1a4f3;
-  --surface: #1a1828;
-  --surface-soft: #211e34;
-  --accent-soft: #312648;
-  --muted: #aaa1bc;
-  --line: #353046;
-  --line-strong: #615574;
+  --paper: #0b1222;
+  --ink: #edf2f8;
+  --accent: #c5b4ef;
+  --surface: #102034;
+  --surface-soft: #182b43;
+  --accent-soft: #342d50;
+  --muted: #a7b8c9;
+  --line: #2a4056;
+  --line-strong: #587088;
   --focus: #cfb1ff;
   --error: #ffadb6;
   --saved: #e9a2c8;
@@ -2548,4 +2548,76 @@ dialog::backdrop {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Warm paper and blue ink, with violet reserved for emphasis. */
+:root {
+  --blue: #365e7a;
+  --blue-soft: #dce7ea;
+  --annotation: #445f7d;
+  --page-wash: #afc7da45;
+  --page-glow: #d4c3e33b;
+}
+:root[data-theme='dark'] {
+  --blue: #91c2df;
+  --blue-soft: #183047;
+  --annotation: #a9cee2;
+  --page-wash: #21577333;
+  --page-glow: #56428227;
+}
+body {
+  background:
+    radial-gradient(ellipse at 90% 5%, var(--page-wash), transparent 52%),
+    radial-gradient(ellipse at 0% 75%, var(--page-glow), transparent 55%), var(--paper);
+}
+.search-card {
+  background: var(--blue-soft);
+  border-color: var(--line-strong);
+}
+.search-card .mode-icon {
+  color: var(--blue);
+}
+.sync-card {
+  background: #1ed760;
+  border-color: #1ab650;
+  color: #071c10;
+  box-shadow: 0 8px 25px #127d3512;
+}
+.sync-card .mode-icon {
+  background: transparent;
+}
+.sync-card small,
+.sync-card .mode-card-text > span,
+.sync-card > svg {
+  color: #133c24;
+}
+.sync-card:hover {
+  border-color: #118b3c;
+  box-shadow: 0 10px 30px #127d352b;
+}
+.spotify-mark {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+.mode-symbol.mode-spotify {
+  background: #1ed760;
+}
+.lyrics-widget .record-panel {
+  background: linear-gradient(150deg, var(--blue-soft), var(--surface-soft));
+}
+.player,
+.test-player {
+  background: var(--blue-soft);
+}
+.script-lens {
+  background:
+    radial-gradient(ellipse at 10% 0%, var(--blue-soft), transparent 80%),
+    radial-gradient(ellipse at 100% 100%, var(--accent-soft), transparent 80%), var(--surface);
+}
+.demo-heading .eyebrow,
+.guide-toolbar,
+.reader-status {
+  color: var(--blue);
 }
