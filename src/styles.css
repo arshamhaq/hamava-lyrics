@@ -2007,3 +2007,20 @@ dialog::backdrop {
     font-size: 30px;
   }
 }
+.brand-mark {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  box-shadow: 0 3px 12px var(--shadow);
+}
+.dialog-mark {
+  border-radius: 13px;
+}
+@media (max-width: 380px) {
+  .brand-mark {
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+  }
+}

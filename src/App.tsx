@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { UpdateCheck } from './components/AppUpdates'
 import { ThemeToggle } from './components/ThemeToggle'
+import { Brand } from './components/Brand'
 import { ScriptLens } from './components/ScriptLens'
 import {
   ArrowDownToLine,
@@ -131,12 +132,7 @@ export default function App() {
         Skip to lyrics
       </a>
       <header className="site-header">
-        <a className="brand" href="/" aria-label="Hamava home">
-          <Soundmark />
-          <span>
-            hamava<span className="brand-dot">.</span>
-          </span>
-        </a>
+        <Brand />
         <div className="header-actions">
           <ThemeToggle />
           <button className="install-button" onClick={install}>
@@ -386,7 +382,7 @@ export default function App() {
           >
             <X size={19} />
           </button>
-          <Soundmark />
+          <img className="dialog-mark" src="/hamava-mark.png" width="48" height="48" alt="" />
           {dialog === 'spotify' && (
             <>
               <h2 id="dialog-title">Connect Spotify</h2>

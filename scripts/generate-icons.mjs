@@ -1,14 +1,18 @@
 import sharp from 'sharp'
-const source = new URL('../public/icon.svg', import.meta.url)
+// Approved ivory/lavender loop on a full-bleed indigo square. OS supplies the mask.
+const source = new URL('../assets/brand/hamava-master.png', import.meta.url)
 for (const [name, size] of [
-  ['pwa-192.png', 192],
-  ['pwa-512.png', 512],
-  ['pwa-maskable.png', 512],
-  ['apple-touch-icon.png', 180],
+  ['hamava-192.png', 192],
+  ['hamava-512.png', 512],
+  ['hamava-maskable.png', 512],
+  ['apple-touch-icon-v2.png', 180],
+  ['hamava-mark.png', 96],
+  ['favicon.png', 64],
 ]) {
   await sharp(source.pathname)
     .resize(size, size)
-    .png()
+    .flatten({ background: '#251c54' })
+    .png({ palette: true, colours: 128 })
     .toFile(new URL(`../public/${name}`, import.meta.url).pathname)
 }
-console.log('Generated local install icons from the original Hamava SVG.')
+console.log('Generated install icons from the approved Hamava mark.')

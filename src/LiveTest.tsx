@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { UpdateCheck } from './components/AppUpdates'
 import { ThemeToggle } from './components/ThemeToggle'
+import { Brand } from './components/Brand'
 import { ArrowLeft, Check, Copy, LockKeyhole, Pause, Play, LoaderCircle } from 'lucide-react'
 import { currentBatch, currentLine, type SongResponse } from '../shared/lyrics'
 import { api, useLiveLyrics } from './hooks/useLiveLyrics'
@@ -32,9 +33,7 @@ export default function LiveTest() {
   return (
     <div className="app live-app">
       <header className="site-header">
-        <a className="brand" href="/">
-          hamava<span className="brand-dot">.</span>
-        </a>
+        <Brand />
         <div className="header-actions">
           <ThemeToggle />
           <a className="install-button" href="/">

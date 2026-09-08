@@ -51,9 +51,31 @@ They verify detection, explicit activation, offline loading of the new release,
 and recovery without losing saved settings. Firefox has its own update-test
 project; install its browser with `npx playwright install firefox`.
 
-Keep update, theme, layout/copy, and logo-review work in separate Git commits so
-each decision can be reverted independently. Logo concepts are for approval only;
-do not replace the manifest, favicon, or iPhone home-screen icon before approval.
+Keep update, theme, layout/copy, and branding work in separate Git commits so
+each decision can be reverted independently. The owner approved the ivory loop
+and lavender inset on indigo. Its master is in `assets/brand/hamava-master.png`;
+`npm run icons` regenerates the header, favicon and phone assets. Approval is no
+longer pending for this mark. Future redesigns still need review.
+
+### Deploy and try v0.3.0
+
+1. From `/home/arsham/finglish-lyrics`, run `npm run deploy:token`. Use the same
+   deployment token and account as before; no new database, AI setup or passphrase
+   is needed for these UI changes.
+2. Open the deployed app and use **Reload app** when offered. For a browser stuck
+   on the old version, open `/api/app-update` on the deployed domain and select
+   **Repair and reload**. Check the footer says `v0.3.0`.
+3. Test light/dark mode, drag the script card, seek and copy a line, then reload.
+   Check the theme stays selected. Reopen offline after installation finishes.
+4. Check the new icon on the real iPhone. If an existing shortcut retains the
+   green icon, remove that shortcut and add the updated site to the home screen
+   again. Browser emulation cannot verify the OS home-screen icon cache.
+
+The local Git commits separate PWA updates (`709dd37`), themes (`14c9efa`), layout
+(`364878c`), and the approved branding. Use `git log --oneline` to inspect them.
+To undo a chosen change, use `git revert <commit>` and resolve any later dependent
+changes if Git reports a conflict; build and redeploy afterward. These are local
+commits: a private GitHub remote is still not configured.
 
 ## Current milestone: one-song live conversion test
 

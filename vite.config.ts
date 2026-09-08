@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['icon.svg', 'apple-touch-icon.png', 'sleeve.svg'],
+      includeAssets: ['favicon.png', 'hamava-mark.png', 'apple-touch-icon-v2.png', 'sleeve.svg'],
       manifest: {
         id: '/',
         name: 'Hamava — Persian lyrics in Finglish',
@@ -23,9 +23,9 @@ export default defineConfig({
         background_color: '#f7f5f2',
         theme_color: '#f7f5f2',
         icons: [
-          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/pwa-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/hamava-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/hamava-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/hamava-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

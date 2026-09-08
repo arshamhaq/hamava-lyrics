@@ -86,6 +86,14 @@ test('fits the viewport and provides an installable offline shell', async ({ pag
   const manifest = await (await page.request.get('/manifest.webmanifest')).json()
   expect(manifest.display).toBe('standalone')
   expect(manifest.icons.some((icon: { sizes: string }) => icon.sizes === '512x512')).toBe(true)
+  expect(manifest.icons.find((icon: { purpose: string }) => icon.purpose === 'maskable').src).toBe(
+    '/hamava-maskable.png',
+  )
+  await expect(page.locator('.brand-mark')).toHaveJSProperty('naturalWidth', 96)
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+    'href',
+    '/apple-touch-icon-v2.png',
+  )
   await page.screenshot({
     path: `test-results/hamava-${test.info().project.name}.png`,
     fullPage: true,
