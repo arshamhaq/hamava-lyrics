@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   Check,
   ChevronLeft,
@@ -7,6 +7,7 @@ import {
   Globe2,
   Heart,
   LoaderCircle,
+  LocateFixed,
   Maximize2,
   Minimize2,
   Pause,
@@ -46,15 +47,20 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
   })
   const list = useRef<HTMLDivElement>(null)
   const activeRow = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!following || !list.current || !activeRow.current) return
-    const target =
-      activeRow.current.offsetTop - (list.current.clientHeight - activeRow.current.clientHeight) / 2
+  const centerCurrentLine = () => {
+    if (!list.current) return
+    const target = activeRow.current
+      ? activeRow.current.offsetTop -
+        (list.current.clientHeight - activeRow.current.clientHeight) / 2
+      : 0
     list.current.scrollTo({
       top: target,
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     })
-  }, [active?.id, following, largeText, showPersian])
+  }
+  useLayoutEffect(() => {
+    if (following) centerCurrentLine()
+  }, [active?.id, following, largeText, showPersian, focus])
   useEffect(() => {
     setCopied(false)
   }, [active?.id])
@@ -166,14 +172,30 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
                     ? 'Instrumental'
                     : 'Current verse'}
             </span>
-            {!following ? (
-              <button onClick={() => setFollowing(true)}>Follow current line</button>
-            ) : (
-              player.positionMs < (vocalLines[0]?.startMs ?? 0) && (
-                <button onClick={() => player.seek(vocalLines[0].startMs)}>Skip intro</button>
-              )
-            )}
+            <div className="reader-navigation">
+              {player.positionMs < (vocalLines[0]?.startMs ?? 0) && (
+                <button className="skip-intro" onClick={() => player.seek(vocalLines[0].startMs)}>
+                  Skip intro
+                </button>
+              )}
+              <button
+                className="follow-button"
+                aria-pressed={following}
+                onClick={() => {
+                  setFollowing(true)
+                  centerCurrentLine()
+                }}
+              >
+                <LocateFixed size={17} /> Follow current line
+              </button>
+            </div>
           </div>
+          {tips && (
+            <p className="guide-note follow-guide">
+              <span>Lost your place? Jump back here.</span>
+              <SketchArrow kind="swoop" mirror />
+            </p>
+          )}
           <div
             id="lyrics"
             tabIndex={0}
@@ -227,7 +249,7 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
               <span>Show Persian</span>
             </button>
             <button className="copy-button" disabled={instrumental} onClick={copy}>
-              {copied ? <Check size={15} /> : <Copy size={15} />}
+              {copied ? <Check size={19} /> : <Copy size={19} />}
               {copied ? 'Copied' : 'Copy current line'}
             </button>
           </div>

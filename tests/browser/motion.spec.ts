@@ -87,7 +87,7 @@ test('reduced motion keeps the example still and the teaching player fully visib
   await page.waitForTimeout(250)
   expect(await slider.inputValue()).toBe(value)
   await expect(page.locator('.demo-content')).toHaveCSS('opacity', '1')
-  await expect(page.locator('.sketch-arrow')).toHaveCount(4)
+  await expect(page.locator('.sketch-arrow')).toHaveCount(5)
 })
 
 test('card finishes its short pass and stays still until replayed', async ({ page }) => {

@@ -171,3 +171,53 @@ test('fits the viewport, reveals the demo and opens an honest offline shell', as
   await expect(page.getByRole('heading', { name: 'Lyrics, in Finglish.' })).toBeVisible()
   expect(errors).toEqual([])
 })
+
+test('follow button returns from browsing without seeking, and stays useful with larger text', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/#demo')
+  const seek = page.getByRole('slider', { name: 'Song position' })
+  await seek.fill('87000')
+  await expect.poll(() => audioTime(page)).toBeCloseTo(87, 1)
+  const follow = page.getByRole('button', { name: 'Follow current line' })
+  const list = page.locator('.reader-lines')
+  await expect(follow).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.follow-guide')).toBeVisible()
+  await list.focus()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('ArrowUp')
+  await list.evaluate((el) => {
+    el.scrollTop = 0
+  })
+  await expect(follow).toHaveAttribute('aria-pressed', 'false')
+  await follow.click()
+  await expect(follow).toHaveAttribute('aria-pressed', 'true')
+  const centered = () =>
+    list.evaluate((el) => {
+      const row = el.querySelector('[aria-current="true"]')!
+      const bounds = row.getBoundingClientRect(),
+        parent = el.getBoundingClientRect()
+      return Math.abs((bounds.top + bounds.bottom) / 2 - (parent.top + parent.bottom) / 2)
+    })
+  await expect.poll(centered).toBeLessThan(3)
+  expect(await audioTime(page)).toBeCloseTo(87, 1)
+  await page.getByRole('button', { name: 'Larger lyrics' }).click()
+  await page.waitForTimeout(350)
+  await expect.poll(centered).toBeLessThan(3)
+  await page.getByRole('button', { name: 'Larger lyrics' }).click()
+  await page.waitForTimeout(350)
+  await expect.poll(centered).toBeLessThan(3)
+  await page.getByRole('switch', { name: 'Show Persian' }).click()
+  await expect.poll(centered).toBeLessThan(3)
+  // Also recenter when auto-follow was already enabled.
+  await list.evaluate((el) => {
+    el.scrollTop = 0
+  })
+  await follow.click()
+  await expect.poll(centered).toBeLessThan(3)
+  await page.getByRole('button', { name: 'Hide tips' }).click()
+  await expect(page.locator('.follow-guide')).toHaveCount(0)
+  await expect(follow).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})

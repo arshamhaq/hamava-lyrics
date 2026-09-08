@@ -272,3 +272,177 @@
     transform: none;
   }
 }
+
+/* Readable hints and the two primary lyric actions. */
+.demo-invitation {
+  font-size: 14px;
+}
+.demo-invitation small {
+  font-size: 12px;
+}
+.guide-toolbar {
+  font-size: 13px;
+}
+.guide-toolbar button {
+  min-height: 40px;
+  padding: 5px 8px;
+}
+.demo-badge {
+  font-size: 12px;
+}
+.reader-status {
+  font-size: 12px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+.reader-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-left: auto;
+}
+.reader-status .skip-intro {
+  min-height: 44px;
+  font-size: 12px;
+}
+.reader-status .follow-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--line-strong);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.reader-status .follow-button[aria-pressed='false'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.follow-guide {
+  margin: -2px 0 5px auto;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 0;
+}
+.follow-guide > .sketch-arrow {
+  width: 80px;
+  height: 60px;
+  margin-right: 22px;
+}
+.follow-guide span {
+  max-width: 255px;
+  margin: 0 -4px 1px 0;
+  transform: rotate(2deg);
+}
+.lyrics-widget .copy-button {
+  min-height: 46px;
+  padding: 11px 16px;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--accent);
+  border-radius: 11px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.lyrics-widget .copy-button:disabled {
+  background: var(--surface-soft);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.65;
+}
+.lyrics-widget .persian-toggle {
+  min-height: 44px;
+  font-size: 12px;
+}
+.reader-lines .lyric-text p {
+  font-size: 25px;
+}
+.reader-lines .lyric-row.active .lyric-text p {
+  font-size: 27px;
+}
+.reader-lines.large-type .lyric-text p {
+  font-size: 33px;
+}
+.reader-lines.large-type .lyric-row.active .lyric-text p {
+  font-size: 35px;
+}
+@media (max-width: 760px) {
+  .demo-invitation {
+    font-size: 13px;
+  }
+  .demo-invitation small,
+  .guide-toolbar {
+    font-size: 12px;
+  }
+  .demo-badge {
+    font-size: 11px;
+  }
+  .reader-status {
+    align-items: flex-start;
+  }
+  .reader-status > span {
+    padding-top: 14px;
+  }
+  .reader-navigation {
+    flex-wrap: wrap;
+    gap: 2px 9px;
+  }
+  .reader-status .follow-button {
+    font-size: 13px;
+    padding: 10px 11px;
+  }
+  .follow-guide > .sketch-arrow {
+    width: 65px;
+    height: 53px;
+    margin-right: 12px;
+  }
+  .follow-guide span {
+    max-width: 220px;
+  }
+  .lyrics-widget .lyrics-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .lyrics-widget .copy-button {
+    font-size: 13px;
+    padding: 11px 12px;
+    margin-left: auto;
+  }
+  .reader-lines .lyric-text p {
+    font-size: 22px;
+  }
+  .reader-lines .lyric-row.active .lyric-text p {
+    font-size: 24px;
+  }
+  .reader-lines.large-type .lyric-text p {
+    font-size: 29px;
+  }
+  .reader-lines.large-type .lyric-row.active .lyric-text p {
+    font-size: 31px;
+  }
+}
+
+/* Measure the final font size when following; animated reflow moved the target
+   after centering. Keep color emphasis, but do not tween the lyric geometry. */
+.reader-lines .lyric-text p {
+  transition: none;
+}
+@media (max-width: 370px) {
+  .lyrics-widget .lyrics-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+  .lyrics-widget .copy-button {
+    margin-left: 0;
+    justify-content: center;
+  }
+}
