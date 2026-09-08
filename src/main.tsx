@@ -11,6 +11,7 @@ import LiveTest from './LiveTest'
 import { AppUpdates } from './components/AppUpdates'
 import { ConnectivityNotice } from './components/ConnectivityNotice'
 import './styles.css'
+import './experience.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

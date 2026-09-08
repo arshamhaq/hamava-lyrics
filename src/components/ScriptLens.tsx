@@ -1,13 +1,59 @@
-import { useState, type CSSProperties } from 'react'
-import { MoveHorizontal } from 'lucide-react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { MoveHorizontal, Pause, Play } from 'lucide-react'
 
-// A supplied phrase, rendered locally. This is a script comparison, not inference.
+// Supplied phrase: a local script comparison, not inference.
 export function ScriptLens() {
   const [reveal, setReveal] = useState(48)
+  const [automatic, setAutomatic] = useState(
+    () => !matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+  const card = useRef<HTMLDivElement>(null)
+  const phase = useRef(0)
+  useEffect(() => {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)')
+    const changed = () => {
+      if (reduced.matches) setAutomatic(false)
+    }
+    reduced.addEventListener('change', changed)
+    return () => reduced.removeEventListener('change', changed)
+  }, [])
+  useEffect(() => {
+    if (!automatic || !card.current) return
+    let frame = 0,
+      last = 0,
+      lastPaint = 0,
+      visible = false
+    const tick = (now: number) => {
+      phase.current += last ? Math.min(now - last, 60) : 0
+      last = now
+      if (now - lastPaint > 32) {
+        setReveal(Math.max(0, Math.min(100, 50 + 58 * Math.sin(phase.current / 1150))))
+        lastPaint = now
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    const resume = () => {
+      cancelAnimationFrame(frame)
+      last = 0
+      if (visible && document.visibilityState === 'visible') frame = requestAnimationFrame(tick)
+    }
+    const observer = new IntersectionObserver((entries) => {
+      visible = entries[0].isIntersecting
+      resume()
+    })
+    observer.observe(card.current)
+    document.addEventListener('visibilitychange', resume)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', resume)
+    }
+  }, [automatic])
   return (
-    <div className="script-lens" style={{ '--reveal': `${reveal}%` } as CSSProperties}>
+    <div ref={card} className="script-lens" style={{ '--reveal': `${reveal}%` } as CSSProperties}>
       <p className="lens-example-label">
-        A glimpse of Finglish <span>Example only</span>
+        <span className="lens-description">A glimpse of Finglish</span>
+        <span className="lens-example-badge">Example only</span>
       </p>
       <div className="lens-caption">
         <span>Finglish</span>
@@ -29,15 +75,30 @@ export function ScriptLens() {
         </div>
         <input
           aria-label="Reveal Finglish"
-          aria-valuetext={`${reveal}% Finglish revealed`}
+          aria-valuetext={`${Math.round(reveal)}% Finglish revealed`}
           type="range"
           min="0"
           max="100"
           value={reveal}
-          onChange={(event) => setReveal(Number(event.target.value))}
+          onPointerDown={() => setAutomatic(false)}
+          onFocus={() => setAutomatic(false)}
+          onChange={(event) => {
+            setAutomatic(false)
+            setReveal(Number(event.target.value))
+          }}
         />
       </div>
-      <p className="lens-control">Slide to compare this phrase · not a translator</p>
+      <div className="lens-footer">
+        <p className="lens-control">One phrase, two scripts.</p>
+        <button
+          className="lens-animation-control"
+          onClick={() => setAutomatic(!automatic)}
+          aria-label={automatic ? 'Pause card animation' : 'Play card animation'}
+        >
+          {automatic ? <Pause size={12} /> : <Play size={12} />}
+          <span>{automatic ? 'Pause' : 'Animate'}</span>
+        </button>
+      </div>
       <span className="sr-only">دوستت دارم — Doostet Daram</span>
     </div>
   )

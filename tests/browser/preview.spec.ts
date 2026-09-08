@@ -149,7 +149,7 @@ test('fits the viewport, reveals the demo and opens an honest offline shell', as
     animations: 'disabled',
   })
   await page.getByRole('link', { name: /First time/ }).click()
-  await expect(page.locator('#demo')).toHaveClass(/demo-revealed/)
+  await expect(page.locator('.demo-content')).toHaveCSS('opacity', '1')
   await page.screenshot({
     path: `test-results/hamava-demo-${test.info().project.name}.png`,
     animations: 'disabled',

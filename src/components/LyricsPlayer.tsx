@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  ArrowUpLeft,
-  ArrowUpRight,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -18,6 +16,7 @@ import {
 import { activeLineAt, type LyricLine } from '../lib/timeline'
 import type { PlayerController } from '../hooks/useAudioPlayer'
 import { SeekBar } from './SeekBar'
+import { SketchArrow } from './SketchArrow'
 
 interface Props {
   track: { title: string; artist: string; coverSrc: string }
@@ -123,8 +122,8 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
           </div>
           {tips && (
             <p className="guide-note cover-guide">
-              <ArrowUpLeft size={22} />
-              <span>In Spotify mode, the song’s available cover appears here.</span>
+              <SketchArrow />
+              <span>Your Spotify cover goes here, when available.</span>
             </p>
           )}
         </aside>
@@ -235,12 +234,12 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
           {tips && (
             <div className="action-guides">
               <p className="guide-note">
-                <ArrowUpLeft size={19} />
-                Read both scripts
+                <SketchArrow kind="swoop" />
+                <span>See the Persian, too</span>
               </p>
               <p className="guide-note">
-                Keep the highlighted line
-                <ArrowUpRight size={19} />
+                <SketchArrow mirror />
+                <span>Take this line with you</span>
               </p>
             </div>
           )}
@@ -299,8 +298,8 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
       </section>
       {tips && (
         <p className="guide-note seek-guide">
-          <ArrowUpLeft size={24} />
-          <span>Drag to a moment. In this demo, the music and lyrics move together.</span>
+          <SketchArrow />
+          <span>Drag here. The music & words follow along.</span>
         </p>
       )}
       {player.error && (
