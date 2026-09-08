@@ -7,7 +7,45 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: guided audio demo (v0.4.0)
+## Current milestone: compact preview and visual polish (v0.4.1)
+
+The phone layout keeps the script comparison in a small corner beside the
+heading, labeled **Example only**. It sweeps automatically between Persian and
+Finglish. Dragging or focusing the slider pauses it; the Pause/Animate control
+lets you choose. Animation also pauses offscreen/in hidden tabs, and starts
+still when the device requests reduced motion. It never starts audio.
+
+Light mode uses warm cream and blue-gray surfaces. Dark mode uses navy and
+blue/indigo surfaces with violet accents. Connect Spotify uses a green button
+and the official black Spotify icon (source in `docs/branding/spotify.md`). The
+approved Hamava logo is unchanged. Spotify/search remain placeholder routes.
+
+Large curved SVG guide arrows point toward the cover, Persian toggle, copy
+button and seek bar. Hide tips removes them. The demo fades in as you scroll
+down and fades back when scrolling up: the full reveal spans at most 250 pixels,
+with a faint peek at the bottom of the initial view. Reduced motion keeps it
+fully visible; keyboard focus also preserves readability. These rules live in
+`src/experience.css` alongside the existing visual system.
+
+Verified: 12 unit/Worker tests, TypeScript/Vite build, and 36 browser checks,
+including desktop/mobile animation, pause/resume, reduced motion, scrolling in
+both directions, playback/seek/copy, offline behavior, and Firefox updates.
+Light/dark screenshots were reviewed at desktop, phone and 320-pixel widths.
+Real-phone acceptance and deployment are still pending.
+
+Run `npm run dev` to review locally. Then `npm run deploy:token`, accept
+**Reload app** when offered, and check **v0.4.1** in the footer. On your phone:
+
+- Check the small example beside the heading; pause it and drag manually.
+- Switch light/dark themes and check the two route buttons.
+- Scroll into the demo, then back up: it should fade both ways over a short scroll.
+- Try the drawn guides, Hide tips, playback, seek, and copy as before.
+
+Palette/Spotify branding and motion/guides are separate commits; inspect
+`git log --oneline` to revert a specific change. No AI calls or paid services
+were added for this UI release.
+
+## Guided audio demo (v0.4.0)
 
 The homepage now presents two clear routes: `/spotify` for automatic sync and
 `/search` for manual sync. Both are honest placeholder screens; OAuth, song
@@ -46,7 +84,7 @@ The app and prepared lyrics remain available offline; audio availability is
 not promised offline. Playback failures show a retry instruction.
 
 To preview: `npm run dev`. To deploy: `npm run deploy:token`, then reconnect and
-accept **Reload app**. Confirm `v0.4.0` in the footer. On the real phone, test:
+accept **Reload app**. Confirm `v0.4.1` in the footer. On the real phone, test:
 
 - Scroll from the two mode choices into the demo; both route screens explain
   what comes next. The card at the top is clearly an example.
