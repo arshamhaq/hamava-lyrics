@@ -7,6 +7,62 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Current milestone: guided audio demo (v0.4.0)
+
+The homepage now presents two clear routes: `/spotify` for automatic sync and
+`/search` for manual sync. Both are honest placeholder screens; OAuth, song
+search and external playback control are future work. Below the choices, a
+scroll reveal introduces the reusable lyrics player with hideable guide arrows.
+The decorative script comparison is explicitly labeled **Example only**.
+
+The owner supplied `C:\Users\Arsham\Desktop\Gharibe Ashena Gogoosh.mp3`
+(accessible in WSL under `/mnt/c/Users/Arsham/Desktop/`). Its 5,814,169 bytes are
+copied unchanged to `public/audio/gharibe-ashena.mp3`. The browser measured
+235.413 seconds. The owner confirmed the first vocal at about 0:27 and first
+chorus at about 1:27 match LRCLIB record 13013538. That record's timed lines and
+a one-time Finglish rendering are pinned in `src/data/demo.ts`. No runtime
+lyrics fetch, Cloudflare AI call or transliteration model is used by this demo.
+The broader raw LRCLIB response and research catalog remain outside Git.
+
+Verified locally for this release: 12 unit/Worker tests, 30 browser checks,
+TypeScript/Vite production build, and a Cloudflare deployment dry run. Browser
+checks include actual MP3 playback and seeking, delayed loading, failure feedback,
+copying, end/restart, no automatic audio requests, both mode entry screens,
+offline/reconnect, and PWA updates in Firefox. Real-phone acceptance and deployment
+of v0.4.0 are the owner's next steps; no credentials were read or saved.
+
+`LyricsPlayer` receives track metadata, timed lines and a playback controller.
+`useAudioPlayer` supplies that controller for this demo using the real media
+clock. Future Spotify/manual controllers can feed the same widget. While
+dragging, the seek control previews a position and commits it on release; it
+does not issue a new seek for every pointer movement. Keyboard seeks also work.
+Buffering, seek completion, errors, late metadata, pause and end-of-song are
+handled by media events. No autoplay. The enlarged mobile thumb sits in a
+44-pixel input target. Users can skip the intro or hide the teaching tips.
+
+Audio uses `preload="none"` and is excluded from service-worker precaching, so
+opening/installing the PWA does not automatically download the recording.
+The app and prepared lyrics remain available offline; audio availability is
+not promised offline. Playback failures show a retry instruction.
+
+To preview: `npm run dev`. To deploy: `npm run deploy:token`, then reconnect and
+accept **Reload app**. Confirm `v0.4.0` in the footer. On the real phone, test:
+
+- Scroll from the two mode choices into the demo; both route screens explain
+  what comes next. The card at the top is clearly an example.
+- Press Play, skip the intro, and drag forward/back. Confirm sound and highlighted
+  text agree, including around 0:27, 1:27 and 3:14. Copy a line into Notes.
+- Toggle Persian, larger text, focus view and tips. Check the seek handle is easy
+  to grab. No sound starts merely from scrolling.
+- Turn off the connection: the large banner should explain the saved version.
+  Reconnect: the banner should clear and an available app update should be offered.
+
+Spotify can support seeking later through
+[`PUT /me/player/seek`](https://developer.spotify.com/documentation/web-api/reference/seek-to-position-in-currently-playing-track),
+with Premium and `user-modify-playback-state`. Send a bounded seek on release,
+then reconcile against playback state. Manual mode will adjust only Hamava's
+lyrics clock; it cannot control audio in an unrelated music app.
+
 ## Connection visibility
 
 The owner confirmed the apparently stale page was being viewed offline. The app
@@ -89,7 +145,7 @@ To undo a chosen change, use `git revert <commit>` and resolve any later depende
 changes if Git reports a conflict; build and redeploy afterward. These are local
 commits: a private GitHub remote is still not configured.
 
-## Current milestone: one-song live conversion test
+## Earlier milestone: one-song live conversion test (paused)
 
 The static preview is deployed at
 [hamava-lyrics.arshamhaqiqat.workers.dev](https://hamava-lyrics.arshamhaqiqat.workers.dev/).
@@ -209,7 +265,7 @@ References: [AI bindings](https://developers.cloudflare.com/workers-ai/configura
 [API routing before assets](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/),
 [D1 token permission](https://developers.cloudflare.com/d1/tutorials/import-to-d1-with-rest-api/).
 
-## What you can see first
+## Archived: original silent preview
 
 Milestone 1 is a responsive, installable static preview. It has an original
 illustrated Googoosh sleeve, a short owner-supplied Finglish excerpt, optional
@@ -506,7 +562,7 @@ References: [PKCE](https://developer.spotify.com/documentation/web-api/tutorials
 [AI pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/),
 [LRCLIB](https://lrclib.net/docs).
 
-## Manual acceptance checklist for milestone 1
+## Archived: manual acceptance checklist for milestone 1
 
 - [ ] Open the deployed URL on the laptop and customer phone; note model/browser.
 - [ ] Play the silent preview. The highlighted excerpt changes at 0, 8, and 16 s.
@@ -525,18 +581,18 @@ References: [PKCE](https://developer.spotify.com/documentation/web-api/tutorials
 ## Automated verification and layout
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium firefox
 npm run check
 ```
 
 On Linux, if Chromium reports missing shared libraries, run
 `npx playwright install-deps chromium` in your terminal; it can require your sudo
-password. For this laptop's initial verification, the browser and three missing
-libraries were downloaded into `/tmp` without a system installation. While those
-temporary files remain, you can rerun the checks with:
+password. For this laptop's current verification, browsers use Playwright's normal
+cache and three missing libraries were extracted into `/tmp` without a system
+installation. While those temporary libraries remain, rerun the checks with:
 
 ```bash
-LD_LIBRARY_PATH=/tmp/hamava-browser-libs/extracted/usr/lib/x86_64-linux-gnu PLAYWRIGHT_BROWSERS_PATH=/tmp/hamava-browsers npm run check
+LD_LIBRARY_PATH=/tmp/hamava-browser-libs/extracted/usr/lib/x86_64-linux-gnu npm run check
 ```
 
 The checks cover timeline boundaries, instrumental gaps, backward seeking,
@@ -545,11 +601,13 @@ clipboard, local saved state, dialogs, viewport overflow, manifest and offline
 reload. Chromium emulation is not a substitute for customer iPhone testing.
 
 ```text
-src/App.tsx                   first reading experience
+src/App.tsx                   landing and future mode entry screens
 src/styles.css                responsive visual system
-src/data/demo.ts              owner-provided excerpt and synthetic times
+src/data/demo.ts              prepared lyrics and pinned demo timing
+src/components/LyricsPlayer.tsx shared player and guided controls
+src/hooks/useAudioPlayer.ts   actual MP3 media clock and playback events
 src/lib/timeline.ts           current-line and clock calculations
-src/hooks/usePreviewPlayer.ts preview transport (replace with Spotify adapter later)
+src/hooks/usePreviewPlayer.ts silent clock retained for the protected live test
 public/                       original artwork, install icons, deployment headers
 tests/                        timing and browser verification
 wrangler.jsonc                free Cloudflare static deployment

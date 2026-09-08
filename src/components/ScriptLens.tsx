@@ -6,6 +6,9 @@ export function ScriptLens() {
   const [reveal, setReveal] = useState(48)
   return (
     <div className="script-lens" style={{ '--reveal': `${reveal}%` } as CSSProperties}>
+      <p className="lens-example-label">
+        A glimpse of Finglish <span>Example only</span>
+      </p>
       <div className="lens-caption">
         <span>Finglish</span>
         <span>Persian</span>
@@ -34,7 +37,7 @@ export function ScriptLens() {
           onChange={(event) => setReveal(Number(event.target.value))}
         />
       </div>
-      <p className="lens-control">Slide between scripts</p>
+      <p className="lens-control">Slide to compare this phrase · not a translator</p>
       <span className="sr-only">دوستت دارم — Doostet Daram</span>
     </div>
   )

@@ -3,13 +3,14 @@
 Read README.md first: it is the implementation plan and milestone record.
 
 - This is a separate private project. Never add the unrelated Go repository.
-- Milestone 1 is a static, silent PWA preview. Do not imply Spotify is connected
-  or audio is playing until real authorization and playback data exist.
+- The homepage now plays the owner-supplied MP3 as an explicit guided demo.
+  Spotify and search routes remain placeholders; never imply they are connected.
 - Keep original LRCLIB timestamps outside AI input; validate and restore IDs.
 - Secrets never belong in VITE_* variables, browser code, commits, or logs.
 - Use Workers Static Assets now; add an authorized Worker API and D1 later.
-- The public demo uses only the owner-supplied excerpt and original artwork.
-  Keep raw third-party lyric catalogs and customer correspondence out of Git.
+- The owner explicitly requested the full supplied recording and prepared
+  Finglish/LRCLIB timing for this single homepage demo. Keep broader raw lyric
+  catalogs and customer correspondence out of Git. Audio must not autoplay.
 - Use the lockfile. Run meaningful timeline tests, typecheck/build, and browser
   checks for relevant UI changes. Browser emulation is not real-phone acceptance.
 - Follow the approved model/batching approach in README; benchmark prompt changes
@@ -18,5 +19,5 @@ Read README.md first: it is the implementation plan and milestone record.
 - Update milestone checkboxes only after the corresponding work is verified.
 - The owner requested a live single-song test before Spotify. The protected
   `/?live` flow fetches LRCLIB record 13013538 at runtime and uses one-minute
-  bounded AI batches. Keep the public static excerpt at `/` and the full source
-  out of Git. Follow README setup instructions for its AI/D1 bindings and secret.
+  bounded AI batches. This experiment is paused pending G2P evaluation; do not
+  make AI calls from the homepage. Follow README for its AI/D1 bindings and secret.
