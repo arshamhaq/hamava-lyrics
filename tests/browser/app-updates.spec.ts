@@ -20,6 +20,10 @@ async function releaseServer() {
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url!, 'http://localhost').pathname
+      if (path === '/api/connectivity') {
+        res.writeHead(204, { 'Cache-Control': 'no-store' }).end()
+        return
+      }
       const file = resolve(
         root,
         '.' + (path === '/api/app-update' ? '/update.html' : path === '/' ? '/index.html' : path),

@@ -245,6 +245,9 @@ export default {
     ctx: { waitUntil(promise: Promise<unknown>): void },
   ): Promise<Response> {
     const url = new URL(request.url)
+    if (url.pathname === '/api/connectivity' && request.method === 'GET') {
+      return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } })
+    }
     // This path is excluded from even the first shipped SW's navigation cache.
     // It serves only a static repair page and never touches lyrics, AI, or secrets.
     if (url.pathname === '/api/app-update' && request.method === 'GET') {

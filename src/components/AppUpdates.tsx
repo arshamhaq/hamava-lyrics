@@ -81,6 +81,7 @@ export function AppUpdates({ children }: { children: ReactNode }) {
     navigator.serviceWorker.addEventListener('controllerchange', controlled)
     document.addEventListener('visibilitychange', visible)
     window.addEventListener('online', online)
+    window.addEventListener('hamava:online', online)
     window.addEventListener('focus', visible)
     const interval = window.setInterval(visible, 60_000)
     void navigator.serviceWorker
@@ -108,6 +109,7 @@ export function AppUpdates({ children }: { children: ReactNode }) {
       navigator.serviceWorker.removeEventListener('controllerchange', controlled)
       document.removeEventListener('visibilitychange', visible)
       window.removeEventListener('online', online)
+      window.removeEventListener('hamava:online', online)
       window.removeEventListener('focus', visible)
     }
   }, [])

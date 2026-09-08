@@ -1,0 +1,56 @@
+.connectivity-banner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 18px 24px;
+  background: #f4d598;
+  color: #382607;
+  border-bottom: 2px solid #ad782e;
+  box-shadow: 0 6px 24px #0002;
+}
+.connectivity-banner strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+.connectivity-banner p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+.connectivity-banner button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #806328;
+  border-radius: 9px;
+  padding: 11px 15px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .connectivity-banner {
+    padding: 14px 17px;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .connectivity-banner > div {
+    flex: 1;
+    min-width: 220px;
+  }
+  .connectivity-banner strong {
+    font-size: 19px;
+  }
+  .connectivity-banner p {
+    font-size: 11px;
+  }
+  .connectivity-banner button {
+    margin-left: 36px;
+    padding: 7px 11px;
+    font-size: 11px;
+  }
+}

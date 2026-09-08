@@ -68,6 +68,9 @@ const request = (path: string, body?: unknown, token = key) =>
 const song = async () => ((await (await request('/api/song')).json()) as SongResponse).song
 
 it('fails closed before source or AI access; API never falls back to the SPA', async () => {
+  const connectivity = await request('/api/connectivity', undefined, 'wrong')
+  expect(connectivity.status).toBe(204)
+  expect(connectivity.headers.get('Cache-Control')).toBe('no-store')
   const recovery = await request('/api/app-update', undefined, 'wrong')
   expect(recovery.status).toBe(200)
   expect(recovery.headers.get('Cache-Control')).toBe('no-store')

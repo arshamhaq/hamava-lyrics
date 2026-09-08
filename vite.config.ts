@@ -2,11 +2,29 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import packageInfo from './package.json'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+
+function localConnectivity(request: IncomingMessage, response: ServerResponse, next: () => void) {
+  if (request.url?.split('?')[0] !== '/api/connectivity') {
+    next()
+    return
+  }
+  response.writeHead(204, { 'Cache-Control': 'no-store' }).end()
+}
 
 export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(packageInfo.version) },
   server: { proxy: { '/api': 'http://127.0.0.1:8787' } },
   plugins: [
+    {
+      name: 'local-connectivity',
+      configureServer(server) {
+        server.middlewares.use(localConnectivity)
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use(localConnectivity)
+      },
+    },
     react(),
     VitePWA({
       registerType: 'prompt',

@@ -7,6 +7,18 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Connection visibility
+
+The owner confirmed the apparently stale page was being viewed offline. The app
+now shows a large sticky **You’re offline** banner above every route. If the
+browser reports a connection but the server cannot be reached, it says **Can’t
+reach Hamava** instead. Both explain that the saved version may be out of date.
+The public `/api/connectivity` probe uses no credentials, database or AI and is
+never cached. Checks run on opening, reconnecting, returning to the foreground,
+and every minute while visible, with a five-second timeout and a retry button.
+Successful reconnection also triggers the normal update check. Local Vite dev
+and preview servers expose the same lightweight probe for frontend testing.
+
 ## UI refinement and reliable PWA updates
 
 Light/dark mode follows the device initially. The header toggle saves an explicit
