@@ -1658,3 +1658,352 @@ dialog::backdrop {
   background: var(--accent-soft);
   color: var(--ink);
 }
+
+/* Reading layout: one small script comparison, then the song. */
+.intro {
+  padding: 38px 0 32px;
+  gap: 48px;
+}
+.intro-heading {
+  flex: 1;
+}
+.intro .eyebrow {
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.intro h1 {
+  font-size: clamp(30px, 3.4vw, 47px);
+  margin-top: 12px;
+}
+.intro h1 em {
+  color: var(--accent);
+}
+.intro .spotify-button {
+  margin-top: 22px;
+  padding: 12px 17px;
+}
+.listening-room {
+  border-radius: 20px;
+  box-shadow: 0 12px 42px var(--shadow);
+}
+.record-panel {
+  padding: 28px;
+}
+.sleeve-wrap {
+  margin: 0 0 24px;
+  padding: 0;
+}
+.record-sleeve {
+  border-radius: 10px;
+}
+.record-caption {
+  margin-top: 23px;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.record-caption span {
+  font-size: 13px;
+}
+.lyrics-stage {
+  min-height: 325px;
+  padding: 24px 0 12px;
+}
+.lyric-row {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+}
+.lyric-row.active {
+  background: var(--accent-soft);
+}
+.lyric-row:last-child {
+  margin-bottom: 0;
+}
+.lyric-text {
+  min-width: 0;
+}
+.lyric-text p {
+  overflow-wrap: anywhere;
+}
+.lyrics-panel {
+  padding: 23px 28px;
+}
+.lyrics-actions {
+  margin-top: 14px;
+}
+.below-player {
+  margin-bottom: 34px;
+}
+.footer-links {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+.site-footer {
+  padding-bottom: 20px;
+}
+.site-footer a,
+.site-footer button {
+  font-size: 11px;
+}
+.dialog-content > .soundmark {
+  margin-bottom: 8px;
+}
+.dialog-content h2 {
+  font-size: 28px;
+}
+.is-focused .lyrics-stage {
+  align-items: stretch;
+}
+.is-focused .lyric-row {
+  width: 100%;
+}
+.script-lens {
+  flex: 0 1 370px;
+  padding: 16px 19px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 90% 0%, var(--accent-soft), transparent 75%), var(--surface);
+  box-shadow: 0 14px 44px var(--shadow);
+  animation: lens-arrive 700ms ease-out both;
+}
+.lens-caption {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.lens-window {
+  position: relative;
+  height: 94px;
+  margin: 8px 0;
+  border-radius: 8px;
+}
+.lens-script {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.lens-persian {
+  font-family: Tahoma, sans-serif;
+  font-size: 33px;
+  color: var(--muted);
+  clip-path: inset(0 0 0 var(--reveal));
+}
+.lens-finglish {
+  font-family: Manrope, sans-serif;
+  font-size: 28px;
+  letter-spacing: -1px;
+  font-weight: 600;
+  color: var(--accent);
+  clip-path: inset(0 calc(100% - var(--reveal)) 0 0);
+}
+.lens-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(10px, var(--reveal), calc(100% - 10px));
+  width: 1px;
+  background: linear-gradient(transparent, var(--accent), transparent);
+  box-shadow: 0 0 22px 5px var(--glow);
+  pointer-events: none;
+}
+.lens-seam > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+}
+.lens-window input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+}
+.lens-window:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.lens-control {
+  text-align: center;
+  color: var(--muted);
+  font-size: 9px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes lens-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1050px) {
+  .intro {
+    gap: 24px;
+  }
+  .script-lens {
+    flex-basis: 320px;
+  }
+  .lens-finglish {
+    font-size: 25px;
+  }
+}
+@media (max-width: 760px) {
+  .site-header {
+    height: 74px;
+    gap: 12px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .brand {
+    font-size: 25px;
+    gap: 8px;
+  }
+  .intro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 26px 0 22px;
+  }
+  .intro-heading {
+    position: relative;
+  }
+  .intro .eyebrow {
+    font-size: 8px;
+  }
+  .intro h1 {
+    font-size: 33px;
+  }
+  .intro h1 + p {
+    display: none;
+  }
+  .intro .spotify-button {
+    position: absolute;
+    right: 0;
+    top: -5px;
+    margin: 0;
+    font-size: 9px;
+    padding: 8px 10px;
+  }
+  .intro .spotify-button > svg {
+    display: none;
+  }
+  .script-lens {
+    padding: 12px 17px 9px;
+    border-radius: 14px;
+  }
+  .lens-window {
+    height: 61px;
+    margin: 2px 0;
+  }
+  .lens-persian {
+    font-size: 28px;
+  }
+  .lens-finglish {
+    font-size: 26px;
+  }
+  .record-panel {
+    grid-template-columns: 60px minmax(0, 1fr);
+    padding: 17px;
+    gap: 14px;
+  }
+  .sleeve-wrap {
+    grid-row: 1;
+    margin: 0;
+  }
+  .track-heading {
+    grid-row: 1;
+  }
+  .track-heading h2 {
+    font-size: 19px;
+  }
+  .record-caption {
+    display: none;
+  }
+  .lyrics-panel {
+    padding: 12px 17px 17px;
+  }
+  .lyrics-stage {
+    min-height: 268px;
+    padding: 18px 0 6px;
+  }
+  .lyric-row {
+    min-height: 71px;
+    gap: 9px;
+    padding: 9px 8px;
+  }
+  .lyric-text p {
+    font-size: 25px;
+  }
+  .lyric-row.active .lyric-text p {
+    font-size: 29px;
+  }
+  .lyric-text > span {
+    font-size: 12px;
+  }
+  .lyrics-actions {
+    margin-top: 12px;
+  }
+  .below-player {
+    margin-bottom: 24px;
+  }
+  .live-app .intro {
+    display: block;
+  }
+}
+@media (max-width: 380px) {
+  .brand {
+    font-size: 23px;
+  }
+  .install-button {
+    padding: 9px 12px;
+  }
+  .track-heading h2 {
+    font-size: 17px;
+  }
+  .lyric-row.active .lyric-text p {
+    font-size: 25px;
+  }
+  .copy-button {
+    padding: 9px 8px;
+  }
+  .intro h1 {
+    font-size: 30px;
+  }
+}

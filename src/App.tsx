@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { UpdateCheck } from './components/AppUpdates'
 import { ThemeToggle } from './components/ThemeToggle'
+import { ScriptLens } from './components/ScriptLens'
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -8,19 +9,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
-  Disc3,
   Globe2,
-  Headphones,
   Heart,
   Info,
-  Leaf,
   Maximize2,
   Minimize2,
   Pause,
   Play,
   Radio,
   RotateCcw,
-  SlidersHorizontal,
   WifiOff,
   X,
 } from 'lucide-react'
@@ -101,7 +98,7 @@ export default function App() {
     try {
       await navigator.clipboard.writeText(active.finglish)
       setCopied(true)
-      setToast('A little piece of the song, copied.')
+      setToast('Line copied.')
     } catch {
       setToast('Copy is unavailable here. Select and copy the lyric text, or open the HTTPS site.')
     }
@@ -140,45 +137,32 @@ export default function App() {
             hamava<span className="brand-dot">.</span>
           </span>
         </a>
-        <span className="header-note">A little closer to the lyrics.</span>
         <div className="header-actions">
           <ThemeToggle />
           <button className="install-button" onClick={install}>
             <ArrowDownToLine size={15} />
-            <span>Get the app</span>
+            <span>Install</span>
           </button>
         </div>
       </header>
 
       <main className="main-shell">
         <section className="intro" aria-labelledby="page-title">
-          <div>
-            <div className="eyebrow">
-              <span className="tiny-star">✳</span> PERSIAN MUSIC. YOUR WORDS.
-            </div>
+          <div className="intro-heading">
+            <span className="eyebrow">هم‌آوا / HAMAVA</span>
             <h1 id="page-title">
-              Feel every <em>word.</em>
+              Lyrics, in <em>Finglish.</em>
             </h1>
-            <p>The songs you love, in letters you know.</p>
+            <p>Follow the line. Keep the words.</p>
+            <button className="spotify-button" onClick={() => setDialog('spotify')}>
+              <Radio size={17} /> Connect Spotify <ArrowRight size={15} />
+            </button>
           </div>
-          <button className="spotify-button" onClick={() => setDialog('spotify')}>
-            <Radio size={18} />
-            Connect Spotify
-            <ArrowRight size={16} />
-          </button>
+          <ScriptLens />
         </section>
 
-        <a className="live-test-link" href="/?live">
-          Try the live Finglish test <ArrowRight size={15} />
-        </a>
         <section className="listening-room" aria-label="Listening room">
           <aside className="record-panel">
-            <div className="panel-kicker">
-              <span>
-                <Disc3 size={14} /> ON THE RECORD
-              </span>
-              <span>001</span>
-            </div>
             <div className="sleeve-wrap">
               <img
                 className="record-sleeve"
@@ -187,14 +171,11 @@ export default function App() {
                 height="640"
                 alt="Original mountain illustration for the Googoosh listening preview"
               />
-              <span className="sleeve-label">THE CLASSICS COLLECTION</span>
             </div>
             <div className="track-heading">
               <div>
                 <h2>{demoTrack.title}</h2>
-                <p>
-                  {demoTrack.artist} <span>·</span> {demoTrack.album}
-                </p>
+                <p>{demoTrack.artist}</p>
               </div>
               <button
                 className={`save-button ${saved ? 'saved' : ''}`}
@@ -205,18 +186,12 @@ export default function App() {
                 <Heart size={20} fill={saved ? 'currentColor' : 'none'} />
               </button>
             </div>
-            <div className="track-tags">
-              <span>Persian pop</span>
-              <span>A timeless favorite</span>
-            </div>
-            <div className="record-note">
-              <Headphones size={17} />
-              <p>
-                A familiar song.
-                <br />
-                <span>A new way to follow along.</span>
-              </p>
-            </div>
+            <p className="record-caption">
+              Gharibe Ashena{' '}
+              <span lang="fa" dir="rtl">
+                غریب آشنا
+              </span>
+            </p>
           </aside>
 
           <div className="lyrics-panel">
@@ -237,7 +212,7 @@ export default function App() {
             <div className="reading-controls">
               <div className="language-label">
                 <Globe2 size={14} />
-                Finglish<span>Latin letters, Persian feeling</span>
+                Finglish
               </div>
               <button
                 className="type-button"
@@ -254,7 +229,6 @@ export default function App() {
               className={`lyrics-stage ${largeText ? 'large-type' : ''}`}
               aria-label="Preview lyrics"
             >
-              <span className="excerpt-label">A LITTLE MOMENT FROM THE SONG</span>
               {demoLines.map((line, index) => (
                 <div
                   key={line.id}
@@ -278,7 +252,6 @@ export default function App() {
                   </div>
                 </div>
               ))}
-              <span className="excerpt-end">a few words. a whole feeling.</span>
             </div>
             <div className="lyrics-actions">
               <button
@@ -371,13 +344,9 @@ export default function App() {
 
         <div className="below-player">
           <p>
-            <Info size={14} />A short lyric preview with a demo clock. Spotify listening is coming
-            next.
+            <Info size={14} />
+            24-second silent demo · Spotify isn’t connected yet.
           </p>
-          <span>
-            <Leaf size={14} />
-            Made for the feeling.
-          </span>
         </div>
         {!online && (
           <div className="notice">
@@ -385,29 +354,15 @@ export default function App() {
             You’re offline. Your saved preview is still here.
           </div>
         )}
-        <section className="little-details" aria-label="About the experience">
-          <span>THE LITTLE THINGS</span>
-          <div>
-            <Copy size={17} />
-            <p>
-              Keep a line with you.<small>One tap to copy the words you love.</small>
-            </p>
-          </div>
-          <div>
-            <SlidersHorizontal size={17} />
-            <p>
-              Read it your way.<small>Finglish, Persian, or a little of both.</small>
-            </p>
-          </div>
-        </section>
       </main>
       <footer className="site-footer">
-        <span>
-          هم‌آوا <span>·</span> In the same voice.
-        </span>
-        <button onClick={() => setDialog('about')}>
-          A note about Hamava <ArrowRight size={13} />
-        </button>
+        <span lang="fa">هم‌آوا</span>
+        <div className="footer-links">
+          <a href="/?live">Lyrics test</a>
+          <button onClick={() => setDialog('about')}>
+            About Hamava <ArrowRight size={13} />
+          </button>
+        </div>
       </footer>
       <UpdateCheck />
       <div className={`toast ${toast ? 'visible' : ''}`} role="status" aria-live="polite">
@@ -434,19 +389,13 @@ export default function App() {
           <Soundmark />
           {dialog === 'spotify' && (
             <>
-              <span className="eyebrow">THE NEXT CHAPTER</span>
-              <h2 id="dialog-title">
-                Your music.
-                <br />
-                <em>Your words.</em>
-              </h2>
+              <h2 id="dialog-title">Connect Spotify</h2>
               <p>
                 Spotify connection is coming next. You’ll sign in on Spotify, then follow your music
                 here while it plays in the Spotify app.
               </p>
               <p className="dialog-note">
-                For now, try the silent preview. Play, move between lines, and copy a little piece
-                of the song.
+                For now, the preview lets you move between lines and copy the highlighted text.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
                 Back to the lyrics <ArrowRight size={16} />
@@ -455,12 +404,7 @@ export default function App() {
           )}
           {dialog === 'install' && (
             <>
-              <span className="eyebrow">A HOME FOR YOUR SONGS</span>
-              <h2 id="dialog-title">
-                Keep Hamava
-                <br />
-                <em>close.</em>
-              </h2>
+              <h2 id="dialog-title">Install Hamava</h2>
               <p>
                 <strong>On iPhone:</strong> open this site in Safari, tap Share, then Add to Home
                 Screen.
@@ -470,8 +414,7 @@ export default function App() {
                 app or Add to Home screen.
               </p>
               <p className="dialog-note">
-                The preview works offline after its first complete visit. A secure HTTPS address
-                gives you the full experience.
+                The preview works offline after its first complete visit.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
                 Got it <Check size={16} />
@@ -480,22 +423,17 @@ export default function App() {
           )}
           {dialog === 'about' && (
             <>
-              <span className="eyebrow">HELLO, HAMAVA</span>
-              <h2 id="dialog-title">
-                In the
-                <br />
-                <em>same voice.</em>
-              </h2>
+              <h2 id="dialog-title">About Hamava</h2>
               <p>
-                Hamava means singing together. It’s a small, personal space to follow Persian songs
-                in Finglish and keep the words that stay with you.
+                A personal app for reading Persian lyrics in Latin letters. Copy the highlighted
+                line or show the Persian text alongside it.
               </p>
               <p className="dialog-note">
                 This first preview uses a short supplied excerpt and an original illustrated sleeve.
                 Its clock is a demonstration; no audio plays and no accounts are connected.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
-                Keep exploring <ArrowRight size={16} />
+                Back to lyrics <ArrowRight size={16} />
               </button>
             </>
           )}

@@ -13,8 +13,13 @@ Light/dark mode follows the device initially. The header toggle saves an explici
 choice on this device, shared by the preview and live-test screens. An early
 theme script applies it before React starts, avoiding a bright flash on reload.
 Surfaces, controls, notices and dialogs use indigo/lavender color tokens.
-Verified: 12 unit/Worker checks and 10 theme/update browser checks across desktop
-and mobile Chromium, with real service-worker lifecycle checks also in Firefox.
+The shorter reading layout removes repeated marketing copy and adds a draggable
+Persian/Finglish comparison using the supplied excerpt. It runs entirely locally,
+supports keyboard input, and respects reduced-motion preferences. The original
+mountain sleeve now uses the same palette and the correct preview song title.
+Verified: 12 unit/Worker checks and 22 browser checks across desktop and mobile
+Chromium, with real service-worker lifecycle checks also in Firefox. Real iPhone
+acceptance and deployment of these UI changes remain to be done.
 
 The owner has paused the Qwen experiment while awaiting access to the gated
 Negara G2P model. Do not integrate or deploy a replacement inference model before

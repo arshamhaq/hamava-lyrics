@@ -46,17 +46,14 @@ export default function LiveTest() {
       <main className="main-shell">
         <section className="intro">
           <div>
-            <div className="eyebrow">THE NEXT VERSE</div>
-            <h1>
-              One song. <em>Little by little.</em>
-            </h1>
+            <h1>Lyrics test</h1>
             <p>Gharibe Ashena · Googoosh · Live Finglish test</p>
           </div>
         </section>
         {!initial ? (
           <form className="test-unlock" onSubmit={load}>
             <LockKeyhole size={24} />
-            <h2>A private listening test</h2>
+            <h2>Unlock lyrics test</h2>
             <p>
               Load the timed Persian lyrics, then watch each section arrive in Finglish. This test
               uses a silent clock; you can play the song separately in Spotify.
@@ -97,7 +94,7 @@ export default function LiveTest() {
         )}
       </main>
       <footer className="site-footer">
-        <span>هم‌آوا · In the same voice.</span>
+        <span>هم‌آوا</span>
         <span>Personal experiment</span>
       </footer>
       <UpdateCheck />

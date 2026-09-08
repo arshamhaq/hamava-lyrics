@@ -5,7 +5,6 @@ import type { LyricLine } from '../lib/timeline'
 export const demoTrack = {
   title: 'Gharibe Ashena',
   artist: 'Googoosh',
-  album: 'Kooh',
   durationMs: 24_000,
   source: 'Owner-provided excerpt · simulated timing',
 }

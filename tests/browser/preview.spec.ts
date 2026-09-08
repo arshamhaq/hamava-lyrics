@@ -1,5 +1,28 @@
 import { test, expect } from '@playwright/test'
 
+test('the script reveal supports touch/click and keyboard without requesting AI', async ({
+  page,
+}) => {
+  const apiCalls: string[] = []
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.startsWith('/api/')) apiCalls.push(request.url())
+  })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  const reveal = page.getByRole('slider', { name: 'Reveal Finglish' })
+  await reveal.fill('100')
+  await expect(reveal).toHaveAttribute('aria-valuetext', '100% Finglish revealed')
+  await reveal.focus()
+  await page.keyboard.press('Home')
+  await expect(reveal).toHaveValue('0')
+  await reveal.click({ position: { x: 40, y: 25 } })
+  expect(Number(await reveal.inputValue())).toBeGreaterThan(0)
+  expect(
+    await page.locator('.script-lens').evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe('none')
+  expect(apiCalls).toEqual([])
+})
+
 test('reads, plays, seeks, copies and handles the end of the preview', async ({
   page,
   context,
@@ -47,7 +70,7 @@ test('fits the viewport and provides an installable offline shell', async ({ pag
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Feel every word.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Lyrics, in Finglish.' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   )
@@ -69,7 +92,7 @@ test('fits the viewport and provides an installable offline shell', async ({ pag
   })
   await context.setOffline(true)
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Feel every word.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Lyrics, in Finglish.' })).toBeVisible()
   await expect(page.getByText('You’re offline. Your saved preview is still here.')).toBeVisible()
   expect(errors).toEqual([])
 })

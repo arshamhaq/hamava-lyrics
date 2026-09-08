@@ -16,7 +16,7 @@ export default defineConfig({
         id: '/',
         name: 'Hamava — Persian lyrics in Finglish',
         short_name: 'Hamava',
-        description: 'A little closer to your favorite Persian songs.',
+        description: 'Persian lyrics in Finglish.',
         start_url: '/',
         scope: '/',
         display: 'standalone',
