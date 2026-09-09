@@ -107,10 +107,13 @@ dialog.full-lyrics[open] {
   outline-offset: -3px;
 }
 .full-lyric {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   text-align: left;
-  padding: 5px 12px;
+  padding: 2px 12px;
   border-left: 3px solid transparent;
   border-radius: 7px;
   color: var(--ink);
@@ -120,14 +123,10 @@ dialog.full-lyrics[open] {
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
-.full-lyric[aria-current='true'],
-.full-lyric[aria-pressed='true'] {
+.full-lyric[aria-current='true'] {
   color: var(--accent);
   background: var(--accent-soft);
   border-left-color: var(--accent);
-}
-button.full-lyric {
-  min-height: 44px;
 }
 .full-large .full-lyric {
   font-size: 24px;
@@ -145,6 +144,10 @@ button.full-lyric {
   font-size: 16px;
 }
 .full-lyrics-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
   padding-top: 10px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
@@ -156,25 +159,28 @@ button.full-lyric {
   justify-content: flex-end;
   gap: 12px;
 }
-.full-copy {
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 10px 19px;
-  border-radius: 11px;
+.full-lyric-text {
+  min-width: 0;
+}
+.full-line-copy {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--accent);
+}
+.full-line-copy:hover {
+  border-color: var(--accent);
+}
+.full-line-copy[data-copied='true'] {
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 14px;
-  font-weight: 600;
-}
-.full-copy:disabled {
-  background: var(--surface-soft);
-  color: var(--muted);
-  opacity: 0.7;
 }
 .full-feedback {
+  flex: 1;
   min-height: 18px;
   padding-top: 4px;
   font-size: 11px;
@@ -196,7 +202,7 @@ button.full-lyric {
   }
   .full-lyric {
     font-size: 16px;
-    padding: 5px 9px;
+    padding: 2px 9px;
   }
   .full-large .full-lyric {
     font-size: 22px;
@@ -204,8 +210,5 @@ button.full-lyric {
   .full-follow {
     font-size: 13px;
     padding-inline: 10px;
-  }
-  .full-copy {
-    flex: 1;
   }
 }

@@ -21,12 +21,10 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
   const [large, setLarge] = useState(false)
   const [persian, setPersian] = useState(false)
   const [following, setFollowing] = useState(synced)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const copyRequest = useRef(0)
   const [message, setMessage] = useState('')
   const active = synced ? activeLineAt(lines, player.positionMs) : null
-  const selected = lines.find((line) => line.id === selectedId)
-  const copyLine = synced ? active : selected
   const center = () => {
     if (!reader.current) return
     const row = currentRow.current
@@ -74,16 +72,20 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
     return () => observer.disconnect()
   }, [following, synced])
   useEffect(() => {
-    setCopied(false)
-    setMessage('')
-  }, [copyLine?.id])
-  const copy = async () => {
-    if (!copyLine?.finglish) return
+    if (!copiedId) return
+    const timer = setTimeout(() => setCopiedId(null), 2000)
+    return () => clearTimeout(timer)
+  }, [copiedId])
+  const copy = async (line: LyricLine, number: number) => {
+    const request = ++copyRequest.current
+    setCopiedId(null)
     try {
-      await navigator.clipboard.writeText(copyLine.finglish)
-      setCopied(true)
-      setMessage('Line copied.')
+      await navigator.clipboard.writeText(line.finglish)
+      if (request !== copyRequest.current) return
+      setCopiedId(line.id)
+      setMessage(`Line ${number} copied.`)
     } catch {
+      if (request !== copyRequest.current) return
       setMessage('Copy is unavailable. Select the text and copy it manually.')
     }
   }
@@ -119,7 +121,7 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
             Follow current line
           </button>
         ) : (
-          <span className="full-selection-hint">Tap a line to copy it</span>
+          <span className="full-selection-hint">Copy any line</span>
         )}
         <button
           className="type-button"
@@ -154,37 +156,36 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
       >
         {lines
           .filter((line) => line.finglish)
-          .map((line) => {
-            const content = (
-              <>
-                <span lang="fa-Latn">{line.finglish}</span>
+          .map((line, index) => (
+            <div
+              key={line.id}
+              ref={line.id === active?.id ? currentRow : undefined}
+              className="full-lyric"
+              aria-current={line.id === active?.id ? 'true' : undefined}
+            >
+              <div className="full-lyric-text">
+                <span id={`full-line-${line.id}`} lang="fa-Latn">
+                  {line.finglish}
+                </span>
                 {persian && line.persian && (
                   <span className="full-persian-line" lang="fa" dir="rtl">
                     {line.persian}
                   </span>
                 )}
-              </>
-            )
-            return synced ? (
-              <div
-                key={line.id}
-                ref={line.id === active?.id ? currentRow : undefined}
-                className="full-lyric"
-                aria-current={line.id === active?.id ? 'true' : undefined}
-              >
-                {content}
               </div>
-            ) : (
               <button
-                key={line.id}
-                className="full-lyric"
-                aria-pressed={selectedId === line.id}
-                onClick={() => setSelectedId(line.id)}
+                className="full-line-copy"
+                aria-label={`Copy line ${index + 1}`}
+                aria-describedby={`full-line-${line.id}`}
+                title={copiedId === line.id ? 'Copied!' : 'Copy this line'}
+                data-copied={copiedId === line.id}
+                onFocus={() => setFollowing(false)}
+                onClick={() => copy(line, index + 1)}
               >
-                {content}
+                {copiedId === line.id ? <Check size={18} /> : <Copy size={18} />}
               </button>
-            )
-          })}
+            </div>
+          ))}
       </div>
       <footer className="full-lyrics-footer">
         <div className="full-lyrics-actions">
@@ -197,10 +198,6 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
               {player.playing ? <Pause size={20} /> : <Play size={20} />}
             </button>
           )}
-          <button className="full-copy" disabled={!copyLine?.finglish} onClick={copy}>
-            {copied ? <Check size={18} /> : <Copy size={18} />}
-            {copied ? 'Copied' : synced ? 'Copy current line' : 'Copy selected line'}
-          </button>
         </div>
         <p className="full-feedback" role="status">
           {message ||
