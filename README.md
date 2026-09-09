@@ -7,7 +7,41 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: readable controls and short intro animation (v0.4.2)
+## Current milestone: dark-first onboarding and compact player (v0.4.3)
+
+A first visit now starts in dark mode regardless of the device theme. A saved
+light/dark choice still wins on later visits and before React starts. The app
+manifest and fallback document color also default to navy.
+
+The demo sits about 40 pixels higher. Its reversible scroll fade spans up to
+375 pixels (1.5 times the previous distance). The shared player has one row for
+**Follow current line (only synced mode)**, Aa and focus view; the redundant
+Lyrics/Demo/Finglish header is removed. The follow note is above the row, away
+from the lyric list. Playback status and Skip intro remain available.
+
+The supplied `C:\Users\Arsham\Desktop\Gharibe-Ashena-Gogoosh.jpg` is copied unchanged
+as `public/gharibe-ashena-cover.jpg` (450 × 450, 38,855 bytes), replacing the
+illustrated sleeve in the demo and its mini player.
+
+All six teaching notes keep their drawn paths and lettering. Dark-mode notes
+use warm cream; light-mode notes retain contrasting blue ink. After the demo
+is fully revealed, each note draws/fades in once as it first enters the viewport.
+Lower notes wait until visible on phones. Scrolling back or hiding/showing seen
+tips does not replay the entrance; reopening the page starts a new demo visit.
+Reduced motion shows the notes immediately. The new previous/next-line note
+sits beside the drag instruction. No continuous instruction animation is used.
+
+Verified: 12 unit/Worker tests, production build and 44 browser checks, including
+saved-light startup, dark default on a light device, one-time note entrances,
+375-pixel reveal, all controls in one row at 320 pixels, the supplied cover,
+Follow → Aa centering, playback/copy, offline behavior and Firefox updates.
+
+Review with `npm run dev`, especially the first scroll and the bottom two notes
+on your phone. Deploy with `npm run deploy:token` when ready, accept **Reload app**
+and check **v0.4.3** in the footer. Deployment and real-phone acceptance remain
+pending. Theme behavior and player/onboarding changes are separate Git commits.
+
+## Readable controls and short intro animation (v0.4.2)
 
 The example card now runs once for about 2.5 seconds of visible animation and
 stops on Finglish. **Replay** starts another pass; dragging or Pause stops it.
