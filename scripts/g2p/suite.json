@@ -1,0 +1,623 @@
+{
+  "version": 1,
+  "provenance": "Original assistant-authored sentences and user-provided regression examples. References are provisional, not native-speaker-certified ground truth. Not a published PER benchmark.",
+  "cases": [
+    {
+      "id": "regression-001",
+      "split": "dev",
+      "category": "regression",
+      "persian": "غریب آشنا دوستت دارم بیا",
+      "references": [
+        "gharibe ashena doostet daram bia"
+      ]
+    },
+    {
+      "id": "regression-002",
+      "split": "dev",
+      "category": "regression",
+      "persian": "دلم می‌خواد دوباره ببینمت",
+      "references": [
+        "delam mikhad dobare bebinamet",
+        "delam mikhad dobare bebinmet"
+      ]
+    },
+    {
+      "id": "regression-003",
+      "split": "dev",
+      "category": "regression",
+      "persian": "اون مرد از این خیابون رفت",
+      "references": [
+        "oon mard az in khiaboon raft"
+      ]
+    },
+    {
+      "id": "regression-004",
+      "split": "dev",
+      "category": "regression",
+      "persian": "امید توی دلش مرد",
+      "references": [
+        "omid tooye delesh mord",
+        "omid tooye delash mord"
+      ]
+    },
+    {
+      "id": "regression-005",
+      "split": "dev",
+      "category": "regression",
+      "persian": "کتاب خوبت رو به من بده",
+      "references": [
+        "ketabe khoobet ro be man bede"
+      ]
+    },
+    {
+      "id": "regression-006",
+      "split": "dev",
+      "category": "regression",
+      "persian": "وقتی رسیدی، من هنوز خواب بودم",
+      "references": [
+        "vaghti residi man hanooz khab boodam"
+      ]
+    },
+    {
+      "id": "regression-007",
+      "split": "dev",
+      "category": "regression",
+      "persian": "امشب می‌خوام باهات حرف بزنم",
+      "references": [
+        "emshab mikham bahat harf bezanam"
+      ]
+    },
+    {
+      "id": "regression-008",
+      "split": "dev",
+      "category": "regression",
+      "persian": "توی چشمات یه امید تازه دیدم",
+      "references": [
+        "tooye cheshmat ye omide taze didam"
+      ]
+    },
+    {
+      "id": "regression-009",
+      "split": "dev",
+      "category": "regression",
+      "persian": "اگه می‌تونی، فردا دوباره بیا",
+      "references": [
+        "age mitoony farda dobare bia",
+        "age mitooni farda dobare bia"
+      ]
+    },
+    {
+      "id": "regression-010",
+      "split": "dev",
+      "category": "regression",
+      "persian": "چرا نمی‌خوای کنارم بمونی؟",
+      "references": [
+        "chera nemikhay kenaram bemooni"
+      ]
+    },
+    {
+      "id": "colloquial-011",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "نمی‌دونم چرا ازم دوری",
+      "references": [
+        "nemidoonam chera azam doori"
+      ]
+    },
+    {
+      "id": "colloquial-012",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "می‌خوام بمونم ولی باید برم",
+      "references": [
+        "mikham bemoonam vali bayad beram"
+      ]
+    },
+    {
+      "id": "colloquial-013",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "بهم بگو هنوز دوستم داری",
+      "references": [
+        "behem begoo hanooz doostam dari"
+      ]
+    },
+    {
+      "id": "colloquial-014",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "دستامو بگیر و تنهام نذار",
+      "references": [
+        "dastamo begir o tanham nazar"
+      ]
+    },
+    {
+      "id": "colloquial-015",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "دلم واسه خنده‌هات تنگ شده",
+      "references": [
+        "delam vase khandehat tang shode"
+      ]
+    },
+    {
+      "id": "colloquial-016",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "کاشکی می‌شد پیش من بمونی",
+      "references": [
+        "kashki mishod pishe man bemooni"
+      ]
+    },
+    {
+      "id": "colloquial-017",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "چشماتو ببند، صدای بارون میاد",
+      "references": [
+        "cheshmato beband sedaye baroon miad"
+      ]
+    },
+    {
+      "id": "colloquial-018",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "دیگه نمی‌خوام ازت چیزی بپرسم",
+      "references": [
+        "dige nemikham azat chizi beporsam"
+      ]
+    },
+    {
+      "id": "colloquial-019",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "هر چی بهت گفتم از ته دل بود",
+      "references": [
+        "har chi behet goftam az tahe del bood"
+      ]
+    },
+    {
+      "id": "colloquial-020",
+      "split": "dev",
+      "category": "colloquial",
+      "persian": "نرو، هنوز حرفام تموم نشده",
+      "references": [
+        "naro hanooz harfam tamoom nashode"
+      ]
+    },
+    {
+      "id": "ezafe-021",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "صدای آروم تو رو دوست دارم",
+      "references": [
+        "sedaye aroome to ro doost daram"
+      ]
+    },
+    {
+      "id": "ezafe-022",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "کنار پنجره اتاق نشستم",
+      "references": [
+        "kenare panjereye otagh neshastam"
+      ]
+    },
+    {
+      "id": "ezafe-023",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "دست سردت روی شونه من بود",
+      "references": [
+        "daste sardet rooye shooneye man bood"
+      ]
+    },
+    {
+      "id": "ezafe-024",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "بوی بارون توی کوچه پیچید",
+      "references": [
+        "booye baroon tooye kooche pichid"
+      ]
+    },
+    {
+      "id": "ezafe-025",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "رنگ آبی دریا منو یاد تو می‌ندازه",
+      "references": [
+        "range abiye darya mano yade to mindaze"
+      ]
+    },
+    {
+      "id": "ezafe-026",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "خونه قدیمی ما هنوز روشنه",
+      "references": [
+        "khooneye ghadimiye ma hanooz roshane"
+      ]
+    },
+    {
+      "id": "ezafe-027",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "قصه عشق ما تموم نمی‌شه",
+      "references": [
+        "ghesseye eshghe ma tamoom nemishe"
+      ]
+    },
+    {
+      "id": "ezafe-028",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "برای دیدن روی ماهت اومدم",
+      "references": [
+        "baraye didane rooye mahet oomadam"
+      ]
+    },
+    {
+      "id": "ezafe-029",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "دل خسته من دنبال آرامشه",
+      "references": [
+        "dele khasteye man donbale arameshe"
+      ]
+    },
+    {
+      "id": "ezafe-030",
+      "split": "dev",
+      "category": "ezafe",
+      "persian": "روی برگ زرد، اسم تو رو نوشتم",
+      "references": [
+        "rooye barge zard esme to ro neveshtam"
+      ]
+    },
+    {
+      "id": "homograph-031",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "اون مرد گفت که گل توی گلدون مرد",
+      "references": [
+        "oon mard goft ke gol tooye goldoon mord"
+      ]
+    },
+    {
+      "id": "homograph-032",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "مهر تو هنوز توی دلم مونده",
+      "references": [
+        "mehre to hanooz tooye delam moonde"
+      ]
+    },
+    {
+      "id": "homograph-033",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "روی نامه یک مهر قرمز زد",
+      "references": [
+        "rooye name yek mohre ghermez zad"
+      ]
+    },
+    {
+      "id": "homograph-034",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "کشتی وسط دریا ایستاد",
+      "references": [
+        "keshti vasate darya istad"
+      ]
+    },
+    {
+      "id": "homograph-035",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "مسابقه کشتی رو تماشا کردم",
+      "references": [
+        "mosabegheye koshti ro tamasha kardam"
+      ]
+    },
+    {
+      "id": "homograph-036",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "ده نفر از این ده رفتند",
+      "references": [
+        "dah nafar az in deh raftand"
+      ]
+    },
+    {
+      "id": "homograph-037",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "این ببر را به باغ وحش ببر",
+      "references": [
+        "in babr ra be baghe vahsh bebar"
+      ]
+    },
+    {
+      "id": "homograph-038",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "برای دردش یک قرص مسکن خرید",
+      "references": [
+        "baraye dardesh yek ghorse mosakken kharid"
+      ]
+    },
+    {
+      "id": "homograph-039",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "برای خانواده‌اش دنبال مسکن بود",
+      "references": [
+        "baraye khanevadeash donbale maskan bood"
+      ]
+    },
+    {
+      "id": "homograph-040",
+      "split": "dev",
+      "category": "homograph",
+      "persian": "باران می‌بارد و دلم آرام می‌گیرد",
+      "references": [
+        "baran mibaarad o delam aram migirad"
+      ]
+    },
+    {
+      "id": "robustness-041",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "مي‌خوام كنار تو بمونم",
+      "references": [
+        "mikham kenare to bemoonam"
+      ]
+    },
+    {
+      "id": "robustness-042",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "میخوام کنار تو بمونم",
+      "references": [
+        "mikham kenare to bemoonam"
+      ]
+    },
+    {
+      "id": "robustness-043",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "می‌خوام کنار تو بمونم",
+      "references": [
+        "mikham kenare to bemoonam"
+      ]
+    },
+    {
+      "id": "robustness-044",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "  امشب   دوباره   بارون   میاد  ",
+      "references": [
+        "emshab dobare baroon miad"
+      ]
+    },
+    {
+      "id": "robustness-045",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "بیا... بیا! هنوز منتظرم",
+      "references": [
+        "bia bia hanooz montazeram"
+      ]
+    },
+    {
+      "id": "robustness-046",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "گوگوش و ابی رو توی ماشین گوش می‌دم",
+      "references": [
+        "googoosh o ebi ro tooye mashin goosh midam"
+      ]
+    },
+    {
+      "id": "robustness-047",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "شادمهر، داریوش و هایده رو دوست دارم",
+      "references": [
+        "shadmehr darioosh o hayede ro doost daram"
+      ]
+    },
+    {
+      "id": "robustness-048",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "برام از تهران و شیراز بگو",
+      "references": [
+        "baram az tehran o shiraz begoo"
+      ]
+    },
+    {
+      "id": "robustness-049",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "دو تا ستاره توی آسمون دیدم",
+      "references": [
+        "do ta setare tooye asemoon didam"
+      ]
+    },
+    {
+      "id": "robustness-050",
+      "split": "dev",
+      "category": "robustness",
+      "persian": "این بار دیگه در رو باز نکن",
+      "references": [
+        "in bar dige dar ro baz nakon"
+      ]
+    },
+    {
+      "id": "holdout-051",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "دلم می‌لرزه وقتی اسممو می‌گی",
+      "references": [
+        "delam milarze vaghti esmamo migi"
+      ]
+    },
+    {
+      "id": "holdout-052",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "تو نیستی و هنوز چراغ اتاق روشنه",
+      "references": [
+        "to nisti o hanooz cheraghe otagh roshane"
+      ]
+    },
+    {
+      "id": "holdout-053",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "دوباره یاد اون شب بارونی افتادم",
+      "references": [
+        "dobare yade oon shabe barooni oftadam"
+      ]
+    },
+    {
+      "id": "holdout-054",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "یه لحظه صبر کن تا حرفمو بگم",
+      "references": [
+        "ye lahze sabr kon ta harfamo begam"
+      ]
+    },
+    {
+      "id": "holdout-055",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "آخر این راه به کجا می‌رسه؟",
+      "references": [
+        "akhare in rah be koja mirese"
+      ]
+    },
+    {
+      "id": "holdout-056",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "بذار کنار تو نفس بکشم",
+      "references": [
+        "bezar kenare to nafas bekesham"
+      ]
+    },
+    {
+      "id": "holdout-057",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "از وقتی رفتی، خواب به چشمام نمیاد",
+      "references": [
+        "az vaghti rafti khab be cheshmam nemiad"
+      ]
+    },
+    {
+      "id": "holdout-058",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "می‌تونی بدون من خوشحال باشی؟",
+      "references": [
+        "mitooni bedoone man khoshhal bashi"
+      ]
+    },
+    {
+      "id": "holdout-059",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "عطر موهات توی خونه جا مونده",
+      "references": [
+        "atre moohat tooye khoone ja moonde"
+      ]
+    },
+    {
+      "id": "holdout-060",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "تو گفتی برمی‌گردی ولی برنگشتی",
+      "references": [
+        "to gofti barmigardi vali barnagashti"
+      ]
+    },
+    {
+      "id": "holdout-061",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "گل سرخ روی میز پژمرده شد",
+      "references": [
+        "gole sorkh rooye miz pazhmorde shod"
+      ]
+    },
+    {
+      "id": "holdout-062",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "مرد خسته کنار رود ایستاد",
+      "references": [
+        "marde khaste kenare rood istad"
+      ]
+    },
+    {
+      "id": "holdout-063",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "امیدش به دیدن دوباره تو مرد",
+      "references": [
+        "omidesh be didane dobareye to mord"
+      ]
+    },
+    {
+      "id": "holdout-064",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "دلم برای کوچه قدیمی‌مون تنگ شده",
+      "references": [
+        "delam baraye koocheye ghadimimoon tang shode"
+      ]
+    },
+    {
+      "id": "holdout-065",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "اگه صدای منو می‌شنوی، جواب بده",
+      "references": [
+        "age sedaye mano mishnavi javab bede"
+      ]
+    },
+    {
+      "id": "holdout-066",
+      "split": "holdout",
+      "category": "holdout",
+      "persian": "من هنوز همون آدم دیروزم",
+      "references": [
+        "man hanooz hamoon adame diroozam"
+      ]
+    },
+    {
+      "id": "regression-007-repeat",
+      "split": "dev",
+      "category": "repeat",
+      "persian": "امشب می‌خوام باهات حرف بزنم",
+      "references": [
+        "emshab mikham bahat harf bezanam"
+      ],
+      "repeat_of": "regression-007"
+    },
+    {
+      "id": "colloquial-012-repeat",
+      "split": "dev",
+      "category": "repeat",
+      "persian": "می‌خوام بمونم ولی باید برم",
+      "references": [
+        "mikham bemoonam vali bayad beram"
+      ],
+      "repeat_of": "colloquial-012"
+    }
+  ]
+}
