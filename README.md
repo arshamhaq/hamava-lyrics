@@ -7,6 +7,19 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## CPU transliteration experiment — ready for owner run
+
+Run `bash scripts/g2p/run.sh` in this project folder. The isolated CPU benchmark
+compares public Homo-GE2PE and Negara v7 weights, fast and five-beam decoding,
+on 52 development cases with two passes. Sixteen holdout cases are reserved.
+Results stay in gitignored `research-private/g2p/`; tell Codex to review the latest
+CPU benchmark when complete. [Instructions and scoring limits](scripts/g2p/README.md).
+
+Verified: eight offline harness checks, dataset validation, and shell syntax.
+The full model benchmark and dependency installation are left for the owner to
+run; this is not a pronunciation acceptance result. No app code, deployment,
+model integration or PWA version change is included.
+
 ## Current milestone: per-line copying in both readers (v0.4.6)
 
 The regular player now has a small copy icon before every sung line, replacing
