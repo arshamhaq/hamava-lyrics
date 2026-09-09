@@ -44,6 +44,8 @@ export function LyricsPlayer({
   const [following, setFollowing] = useState(true)
   const [tips, setTips] = useState(guided)
   const [copied, setCopied] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const copyRequest = useRef(0)
   const [message, setMessage] = useState('')
   const [saved, setSaved] = useState(() => {
     try {
@@ -78,13 +80,23 @@ export function LyricsPlayer({
     const timer = setTimeout(() => setMessage(''), 2600)
     return () => clearTimeout(timer)
   }, [message])
-  const copy = async () => {
-    if (!active?.finglish) return
+  useEffect(() => {
+    if (!copiedId) return
+    const timer = setTimeout(() => setCopiedId(null), 2000)
+    return () => clearTimeout(timer)
+  }, [copiedId])
+  const copy = async (line = active, number?: number) => {
+    if (!line?.finglish) return
+    const request = ++copyRequest.current
+    setCopiedId(null)
     try {
-      await navigator.clipboard.writeText(active.finglish)
-      setCopied(true)
-      setMessage('Line copied.')
+      await navigator.clipboard.writeText(line.finglish)
+      if (request !== copyRequest.current) return
+      setCopied(line.id === active?.id)
+      setCopiedId(line.id)
+      setMessage(number ? `Line ${number} copied.` : 'Line copied.')
     } catch {
+      if (request !== copyRequest.current) return
       setMessage('Copy is unavailable. Select the line and copy it manually.')
     }
   }
@@ -97,6 +109,7 @@ export function LyricsPlayer({
     }
   }
   const vocalLines = lines.filter((line) => line.finglish)
+  const lineNumbers = new Map(vocalLines.map((line, index) => [line.id, index + 1]))
   const previous = [...vocalLines].reverse().find((line) => line.startMs < player.positionMs - 500)
   const next = vocalLines.find((line) => line.startMs > player.positionMs + 100)
   const instrumental = !active?.finglish
@@ -215,18 +228,34 @@ export function LyricsPlayer({
                 <p>Instrumental intro</p>
               </div>
             </div>
-            {lines.map((line, index) => (
+            {lines.map((line) => (
               <div
                 key={line.id}
                 ref={line.id === active?.id ? activeRow : undefined}
                 className={`lyric-row ${line.id === active?.id ? 'active' : ''} ${!line.finglish ? 'instrumental-row' : ''}`}
                 aria-current={line.id === active?.id ? 'true' : undefined}
               >
-                <span className="lyric-indicator" aria-hidden="true">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
+                {line.finglish ? (
+                  <button
+                    className="line-copy-button"
+                    aria-label={`Copy line ${lineNumbers.get(line.id)}`}
+                    aria-describedby={`lyric-line-${line.id}`}
+                    title={copiedId === line.id ? 'Copied!' : 'Copy this line'}
+                    data-copied={copiedId === line.id}
+                    onFocus={() => setFollowing(false)}
+                    onClick={() => copy(line, lineNumbers.get(line.id))}
+                  >
+                    {copiedId === line.id ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                ) : (
+                  <span className="lyric-indicator" aria-hidden="true">
+                    ♪
+                  </span>
+                )}
                 <div className="lyric-text">
-                  <p lang={line.finglish ? 'fa-Latn' : 'en'}>{line.finglish || 'Instrumental'}</p>
+                  <p id={`lyric-line-${line.id}`} lang={line.finglish ? 'fa-Latn' : 'en'}>
+                    {line.finglish || 'Instrumental'}
+                  </p>
                   {showPersian && line.persian && (
                     <span lang="fa" dir="rtl">
                       {line.persian}
@@ -246,7 +275,7 @@ export function LyricsPlayer({
               <span className={`toggle ${showPersian ? 'on' : ''}`} />
               <span>Show Persian</span>
             </button>
-            <button className="copy-button" disabled={instrumental} onClick={copy}>
+            <button className="copy-button" disabled={instrumental} onClick={() => copy()}>
               {copied ? <Check size={19} /> : <Copy size={19} />}
               {copied ? 'Copied' : 'Copy current line'}
             </button>

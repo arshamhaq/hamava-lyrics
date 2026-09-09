@@ -221,3 +221,40 @@ test('follow button returns from browsing without seeking, and stays useful with
   await expect(follow).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
+
+test('inline copy buttons copy any sung line without changing playback', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/#demo')
+  const reader = page.locator('.reader-lines')
+  await expect(reader.getByRole('button', { name: /^Copy line / })).toHaveCount(28)
+  await reader.getByRole('button', { name: 'Copy line 1', exact: true }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'To az shahre gharibe bi neshooni oomadi',
+  )
+  await expect(reader.getByRole('button', { name: 'Copy line 1', exact: true })).toHaveAttribute(
+    'data-copied',
+    'true',
+  )
+  expect(await audioTime(page)).toBe(0)
+  await page.getByRole('slider', { name: 'Song position' }).fill('87000')
+  await expect.poll(() => audioTime(page)).toBeCloseTo(87, 1)
+  const last = reader.getByRole('button', { name: 'Copy line 28', exact: true })
+  const expected = await last.locator('..').locator('[lang="fa-Latn"]').innerText()
+  await last.click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected)
+  await expect(last).toHaveAttribute('data-copied', 'true')
+  await expect(reader.locator('[aria-current="true"]')).toContainText('Gharibe ashena')
+  expect(await audioTime(page)).toBeCloseTo(87, 1)
+  await expect(page.getByRole('button', { name: 'Follow current line' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  )
+  await page.getByRole('button', { name: 'Follow current line' }).click()
+  await page.getByRole('button', { name: 'Copy current line' }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'Gharibe ashena, dooset daram, bia',
+  )
+})

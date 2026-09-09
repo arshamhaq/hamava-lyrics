@@ -640,3 +640,33 @@
     flex-basis: 48px;
   }
 }
+
+/* Small per-line copy controls replace the decorative line numbers. */
+.reader-lines .lyric-text {
+  flex: 1;
+  min-width: 0;
+}
+.line-copy-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--accent);
+  background: transparent;
+}
+.line-copy-button:hover {
+  background: var(--accent-soft);
+}
+.line-copy-button[data-copied='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+@media (max-width: 760px) {
+  .line-copy-button {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
