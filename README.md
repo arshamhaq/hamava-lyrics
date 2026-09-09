@@ -7,7 +7,39 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: dark-first onboarding and compact player (v0.4.3)
+## Current milestone: full-window lyrics reader (v0.4.4)
+
+The expand button now opens a full-viewport lyrics dialog instead of hiding the
+cover inside the existing widget. It contains all 28 sung demo lines, a compact
+16-pixel phone / 18-pixel desktop Finglish size, its own scrolling, Aa, optional
+Persian, and a copy button that stays at the bottom. Aa increases that size to
+22 / 24 pixels without moving the followed line out of view. The original
+widget's Aa and expand controls are now 48–50-pixel accent buttons.
+
+In synced use, the existing media clock drives highlighting and Follow current
+line. Browsing pauses following; the button returns to the current line without
+seeking the song. Copy always takes the current sung line and is disabled during
+instrumental sections. A compact play/pause control is available inside the
+reader. Opening and closing never replace the audio element or restart playback.
+
+The native modal dialog fills the app window, includes safe-area padding, traps
+keyboard focus and prevents background scrolling. Close or Escape restores the
+original page position and focus. It does not request the browser's optional
+Fullscreen API, so it works as an app-window view in mobile browsers and PWAs.
+The reader component also accepts `synced=false`: it hides automatic-follow
+controls and lets a user select a line to copy. The actual search route remains
+future work; it is not connected by this UI change.
+
+Validation: 12 unit/Worker tests, production build and 48 browser checks. The new
+checks verify complete lyrics, full viewport sizing, current-line copy, Aa and
+Persian alignment, manual browsing/follow, continuing audio, and closing with
+Escape or the button. Browser emulation is not real-phone acceptance.
+
+Run `npm run dev`, play the demo, open full lyrics, browse and press Follow,
+try Aa and Copy, then close it. Deploy with `npm run deploy:token` when ready;
+accept **Reload app** and confirm **v0.4.4**. Deployment is still pending.
+
+## Dark-first onboarding and compact player (v0.4.3)
 
 A first visit now starts in dark mode regardless of the device theme. A saved
 light/dark choice still wins on later visits and before React starts. The app
