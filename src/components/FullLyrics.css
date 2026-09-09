@@ -27,7 +27,8 @@ dialog.full-lyrics[open] {
 .full-lyrics-tools,
 .full-lyrics-footer {
   width: 100%;
-  padding-inline: max(24px, calc((100vw - 900px) / 2));
+  padding-left: max(24px, env(safe-area-inset-left), calc((100vw - 900px) / 2));
+  padding-right: max(24px, env(safe-area-inset-right), calc((100vw - 900px) / 2));
   flex: 0 0 auto;
 }
 .full-lyrics-header {
@@ -100,7 +101,9 @@ dialog.full-lyrics[open] {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
-  padding: 18px max(24px, calc((100vw - 900px) / 2));
+  padding-block: 18px;
+  padding-left: max(24px, env(safe-area-inset-left), calc((100vw - 900px) / 2));
+  padding-right: max(24px, env(safe-area-inset-right), calc((100vw - 900px) / 2));
   outline-offset: -3px;
 }
 .full-lyric {
@@ -189,7 +192,7 @@ button.full-lyric {
     font-size: 20px;
   }
   .full-lyrics-reader {
-    padding: 12px max(12px, env(safe-area-inset-left)) 12px max(12px, env(safe-area-inset-right));
+    padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left));
   }
   .full-lyric {
     font-size: 16px;
