@@ -7,7 +7,30 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: full-window lyrics reader (v0.4.4)
+## Current milestone: copy any lyric in the full reader (v0.4.5)
+
+Every sung line in the full-window reader now has its own 44-pixel copy button.
+It copies that line's Finglish immediately, in synced or unsynced use, including
+when playback is paused or instrumental. A successful copy briefly replaces
+that button's icon with a checkmark; the status identifies the copied line.
+Clipboard failures explain how to copy manually and allow another attempt.
+
+There is no Copy current line or Copy selected line button in the full reader.
+The original demo widget retains its existing Copy current line behavior.
+Focusing a row's copy control pauses auto-follow so browsing/copying does not
+snap away; highlighting still tracks playback, and Follow current line resumes
+following. Copy never seeks or changes the playback clock. The same per-line
+controls are ready for `synced=false`; connecting the search route is later work.
+
+Verified: 12 unit/Worker tests, production build and 50 browser checks. Coverage
+includes copying the first and last lines while another line is current, 28
+independent buttons, copy availability without an active lyric, failure/retry,
+continued playback, Aa/follow alignment, and restoring the demo after closing.
+
+Review with `npm run dev`. Deploy with `npm run deploy:token` when ready and
+confirm **v0.4.5** after accepting **Reload app**. Deployment remains pending.
+
+## Full-window lyrics reader (v0.4.4)
 
 The expand button now opens a full-viewport lyrics dialog instead of hiding the
 cover inside the existing widget. It contains all 28 sung demo lines, a compact
