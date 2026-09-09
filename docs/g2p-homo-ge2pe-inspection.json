@@ -1,0 +1,84 @@
+{
+  "weight_bytes": 33062296,
+  "stored_parameters": 8264064,
+  "tensor_count": 52,
+  "config": {
+    "_name_or_path": "./phase2-30-ep",
+    "architectures": [
+      "T5ForConditionalGeneration"
+    ],
+    "classifier_dropout": 0.0,
+    "d_ff": 512,
+    "d_kv": 64,
+    "d_model": 512,
+    "decoder_start_token_id": 0,
+    "dense_act_fn": "gelu_new",
+    "dropout_rate": 0.1,
+    "eos_token_id": 1,
+    "feed_forward_proj": "gated-gelu",
+    "gradient_checkpointing": false,
+    "initializer_factor": 1.0,
+    "is_encoder_decoder": true,
+    "is_gated_act": true,
+    "layer_norm_epsilon": 1e-06,
+    "model_type": "t5",
+    "num_decoder_layers": 2,
+    "num_heads": 6,
+    "num_layers": 2,
+    "pad_token_id": 0,
+    "relative_attention_max_distance": 128,
+    "relative_attention_num_buckets": 32,
+    "tie_word_embeddings": false,
+    "tokenizer_class": "ByT5Tokenizer",
+    "torch_dtype": "float32",
+    "transformers_version": "4.48.1",
+    "use_cache": true,
+    "vocab_size": 384
+  },
+  "archive_members": [
+    {
+      "name": "added_tokens.json",
+      "bytes": 3018
+    },
+    {
+      "name": "config.json",
+      "bytes": 831
+    },
+    {
+      "name": "generation_config.json",
+      "bytes": 112
+    },
+    {
+      "name": "model.safetensors",
+      "bytes": 33062296
+    },
+    {
+      "name": "optimizer.pt",
+      "bytes": 66156666
+    },
+    {
+      "name": "rng_state.pth",
+      "bytes": 14244
+    },
+    {
+      "name": "scheduler.pt",
+      "bytes": 1064
+    },
+    {
+      "name": "special_tokens_map.json",
+      "bytes": 3090
+    },
+    {
+      "name": "tokenizer_config.json",
+      "bytes": 25602
+    },
+    {
+      "name": "trainer_state.json",
+      "bytes": 230991
+    },
+    {
+      "name": "training_args.bin",
+      "bytes": 5432
+    }
+  ]
+}

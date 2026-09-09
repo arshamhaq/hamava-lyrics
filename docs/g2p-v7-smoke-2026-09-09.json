@@ -1,0 +1,90 @@
+[
+  {
+    "text": "غریب آشنا دوستت دارم بیا",
+    "raw": "qarib AshenA dustat dAram biyA",
+    "finglish": "gharib ashena doostat daram biya",
+    "ms": 130,
+    "stopped": true,
+    "tokens": 30
+  },
+  {
+    "text": "دلم می‌خواد دوباره ببینمت",
+    "raw": "delam mikhad dobAre bebinamet",
+    "finglish": "delam mikhad dobare bebinamet",
+    "ms": 85,
+    "stopped": true,
+    "tokens": 29
+  },
+  {
+    "text": "اون مرد از این خیابون رفت",
+    "raw": "oun mard az in xiyAbun raft",
+    "finglish": "ooon mard az in khiyaboon raft",
+    "ms": 70,
+    "stopped": true,
+    "tokens": 27
+  },
+  {
+    "text": "امید توی دلش مرد",
+    "raw": "omid tuye delaS mord",
+    "finglish": "omid tooye delash mord",
+    "ms": 58,
+    "stopped": true,
+    "tokens": 20
+  },
+  {
+    "text": "کتاب خوبت رو به من بده",
+    "raw": "ketAbe xubat ro be man bede",
+    "finglish": "ketabe khoobat ro be man bede",
+    "ms": 107,
+    "stopped": true,
+    "tokens": 27
+  },
+  {
+    "text": "وقتی رسیدی، من هنوز خواب بودم",
+    "raw": "vaqti rasidi man hanuz xAb budam",
+    "finglish": "vaghti rasidi man hanooz khab boodam",
+    "ms": 95,
+    "stopped": true,
+    "tokens": 32
+  },
+  {
+    "text": "امشب می‌خوام باهات حرف بزنم",
+    "raw": "emSab mikhAm bAhat harf bezanam",
+    "finglish": "emshab mikham bahat harf bezanam",
+    "ms": 77,
+    "stopped": true,
+    "tokens": 31
+  },
+  {
+    "text": "توی چشمات یه امید تازه دیدم",
+    "raw": "tuye CeSmAt ye omide tAze didam",
+    "finglish": "tooye cheshmat ye omide taze didam",
+    "ms": 74,
+    "stopped": true,
+    "tokens": 31
+  },
+  {
+    "text": "اگه می‌تونی، فردا دوباره بیا",
+    "raw": "age mituni fardA dobAre biyA",
+    "finglish": "age mitooni farda dobare biya",
+    "ms": 73,
+    "stopped": true,
+    "tokens": 28
+  },
+  {
+    "text": "چرا نمی‌خوای کنارم بمونی؟",
+    "raw": "CerA nemikhAy kenAram bemuni",
+    "finglish": "chera nemikhay kenaram bemooni",
+    "ms": 69,
+    "stopped": true,
+    "tokens": 28
+  },
+  {
+    "text": "اون مرد گفت که گل توی گلدون مرد",
+    "raw": "oun mard goft ke gol tuye goldun mord",
+    "finglish": "ooon mard goft ke gol tooye goldoon mord",
+    "ms": 80,
+    "stopped": true,
+    "tokens": 37
+  }
+]
