@@ -7,7 +7,24 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: copy any lyric in the full reader (v0.4.5)
+## Current milestone: per-line copying in both readers (v0.4.6)
+
+The regular player now has a small copy icon before every sung line, replacing
+its decorative line number. Phone targets remain 44 pixels wide and high.
+Copying uses that row's Finglish and briefly shows a checkmark, without seeking
+or changing playback. Focusing a copy button pauses following so the row stays
+available while browsing. The existing quick Copy current line button remains.
+
+Verified: 12 unit/Worker tests, production build, and 52 browser checks, including
+copying the first/last lines during the intro or another highlighted lyric,
+unchanged playback position, and returning to Follow/current-line copy. Reviewed
+the mobile demo screenshot. Real-phone acceptance and deployment remain pending.
+
+Review with `npm run dev`; deploy with `npm run deploy:token` when ready, accept
+**Reload app**, and confirm **v0.4.6**. No search route or AI work is implemented
+in this release. The proposed next milestone is [search planning](docs/search-plan.md).
+
+## Copy any lyric in the full reader (v0.4.5)
 
 Every sung line in the full-window reader now has its own 44-pixel copy button.
 It copies that line's Finglish immediately, in synced or unsynced use, including
