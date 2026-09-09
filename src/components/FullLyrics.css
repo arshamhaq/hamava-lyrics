@@ -1,0 +1,208 @@
+/* A top-layer dialog fills the app viewport independently of homepage fades. */
+dialog.full-lyrics {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: none;
+}
+dialog.full-lyrics[open] {
+  display: flex;
+  flex-direction: column;
+}
+.full-lyrics::backdrop {
+  background: var(--paper);
+  backdrop-filter: none;
+}
+.full-lyrics-header,
+.full-lyrics-tools,
+.full-lyrics-footer {
+  width: 100%;
+  padding-inline: max(24px, calc((100vw - 900px) / 2));
+  flex: 0 0 auto;
+}
+.full-lyrics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: max(18px, env(safe-area-inset-top));
+  padding-bottom: 12px;
+}
+.full-lyrics-header h2 {
+  font-family: Manrope, sans-serif;
+  font-size: 23px;
+  letter-spacing: -0.6px;
+}
+.full-lyrics-header p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.full-lyrics .icon-button,
+.full-lyrics .type-button,
+.full-persian {
+  min-width: 44px;
+  height: 44px;
+}
+.full-lyrics-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.full-follow,
+.full-selection-hint {
+  margin-right: auto;
+}
+.full-follow {
+  min-height: 44px;
+  padding: 10px 15px;
+  border-radius: 11px;
+  font-size: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.full-follow[aria-pressed='false'] {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.full-persian {
+  color: var(--muted);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.full-persian[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.full-selection-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+.full-lyrics-reader {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  padding: 18px max(24px, calc((100vw - 900px) / 2));
+  outline-offset: -3px;
+}
+.full-lyric {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 12px;
+  border-left: 3px solid transparent;
+  border-radius: 7px;
+  color: var(--ink);
+  font-family: Manrope, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.full-lyric[aria-current='true'],
+.full-lyric[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+button.full-lyric {
+  min-height: 44px;
+}
+.full-large .full-lyric {
+  font-size: 24px;
+  padding-block: 8px;
+}
+.full-persian-line {
+  display: block;
+  font-family: Tahoma, sans-serif;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+  text-align: left;
+}
+.full-large .full-persian-line {
+  font-size: 16px;
+}
+.full-lyrics-footer {
+  padding-top: 10px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.full-lyrics-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.full-copy {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 19px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+.full-copy:disabled {
+  background: var(--surface-soft);
+  color: var(--muted);
+  opacity: 0.7;
+}
+.full-feedback {
+  min-height: 18px;
+  padding-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+}
+@media (max-width: 760px) {
+  .full-lyrics-header,
+  .full-lyrics-tools,
+  .full-lyrics-footer {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .full-lyrics-header h2 {
+    font-size: 20px;
+  }
+  .full-lyrics-reader {
+    padding: 12px max(12px, env(safe-area-inset-left)) 12px max(12px, env(safe-area-inset-right));
+  }
+  .full-lyric {
+    font-size: 16px;
+    padding: 5px 9px;
+  }
+  .full-large .full-lyric {
+    font-size: 22px;
+  }
+  .full-follow {
+    font-size: 13px;
+    padding-inline: 10px;
+  }
+  .full-copy {
+    flex: 1;
+  }
+}

@@ -7,7 +7,6 @@ import {
   Heart,
   LoaderCircle,
   Maximize2,
-  Minimize2,
   Pause,
   Play,
   RotateCcw,
@@ -16,23 +15,32 @@ import { activeLineAt, type LyricLine } from '../lib/timeline'
 import type { PlayerController } from '../hooks/useAudioPlayer'
 import { SeekBar } from './SeekBar'
 import { SketchArrow } from './SketchArrow'
+import { FullLyrics } from './FullLyrics'
 import { useGuideEntrance } from '../hooks/useGuideEntrance'
 
 interface Props {
   track: { title: string; artist: string; coverSrc: string }
   lines: readonly LyricLine[]
   player: PlayerController
+  synced?: boolean
   guidesReady?: boolean
   guided?: boolean
 }
 
 // Shared presentation for the audio demo and future Spotify/manual controllers.
 // This component does not fetch tracks or decide how a seek reaches the player.
-export function LyricsPlayer({ track, lines, player, guidesReady = true, guided = false }: Props) {
+export function LyricsPlayer({
+  track,
+  lines,
+  player,
+  synced = true,
+  guidesReady = true,
+  guided = false,
+}: Props) {
   const active = activeLineAt(lines, player.positionMs)
   const [showPersian, setShowPersian] = useState(true)
   const [largeText, setLargeText] = useState(false)
-  const [focus, setFocus] = useState(false)
+  const [fullOpen, setFullOpen] = useState(false)
   const [following, setFollowing] = useState(true)
   const [tips, setTips] = useState(guided)
   const [copied, setCopied] = useState(false)
@@ -61,7 +69,7 @@ export function LyricsPlayer({ track, lines, player, guidesReady = true, guided 
   }
   useLayoutEffect(() => {
     if (following) centerCurrentLine()
-  }, [active?.id, following, largeText, showPersian, focus])
+  }, [active?.id, following, largeText, showPersian, fullOpen])
   useEffect(() => {
     setCopied(false)
   }, [active?.id])
@@ -93,7 +101,7 @@ export function LyricsPlayer({ track, lines, player, guidesReady = true, guided 
   const next = vocalLines.find((line) => line.startMs > player.positionMs + 100)
   const instrumental = !active?.finglish
   return (
-    <div ref={widget} className={`lyrics-widget ${focus ? 'reader-focused' : ''}`}>
+    <div ref={widget} className="lyrics-widget">
       {guided && (
         <div className="guide-toolbar">
           <span>Play, drag, and try the controls</span>
@@ -163,11 +171,11 @@ export function LyricsPlayer({ track, lines, player, guidesReady = true, guided 
             </button>
             <button
               className="icon-button"
-              aria-label={focus ? 'Leave focus view' : 'Focus on lyrics'}
-              aria-pressed={focus}
-              onClick={() => setFocus(!focus)}
+              aria-label="Open full lyrics"
+              aria-haspopup="dialog"
+              onClick={() => setFullOpen(true)}
             >
-              {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              <Maximize2 size={17} />
             </button>
           </div>
           <div className="reader-status">
@@ -324,6 +332,15 @@ export function LyricsPlayer({ track, lines, player, guidesReady = true, guided 
         <p className="audio-error" role="alert">
           {player.error}
         </p>
+      )}
+      {fullOpen && (
+        <FullLyrics
+          track={track}
+          lines={lines}
+          player={player}
+          synced={synced}
+          onClose={() => setFullOpen(false)}
+        />
       )}
       <p className="reader-feedback" role="status" aria-live="polite">
         {message}

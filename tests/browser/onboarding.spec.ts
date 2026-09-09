@@ -36,7 +36,7 @@ test('compact toolbar fits narrow screens with the follow note above it', async 
   await expect(page.locator('.lyrics-toolbar, .reading-controls')).toHaveCount(0)
   const follow = page.getByRole('button', { name: 'Follow current line (only synced mode)' })
   const aa = page.getByRole('button', { name: 'Larger lyrics' })
-  const focus = page.getByRole('button', { name: 'Focus on lyrics' })
+  const focus = page.getByRole('button', { name: 'Open full lyrics' })
   const boxes = await Promise.all([follow, aa, focus].map((el) => el.boundingBox()))
   const centers = boxes.map((box) => box!.y + box!.height / 2)
   expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(2)
