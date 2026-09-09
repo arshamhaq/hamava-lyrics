@@ -1,6 +1,6 @@
 /* Motion and teaching notes. Keep the reveal measurement wrapper untransformed. */
 .welcome {
-  min-height: calc(100svh - 300px);
+  min-height: calc(100svh - 340px);
 }
 .demo-section,
 .demo-section:target,
@@ -133,7 +133,7 @@
 }
 @media (max-width: 760px) {
   .welcome {
-    min-height: calc(100svh - 255px);
+    min-height: calc(100svh - 295px);
     justify-content: center;
   }
   .welcome .intro {
@@ -306,7 +306,7 @@
   min-height: 44px;
   font-size: 12px;
 }
-.reader-status .follow-button {
+.reader-tools .follow-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -321,7 +321,7 @@
   background: var(--blue-soft);
   color: var(--blue);
 }
-.reader-status .follow-button[aria-pressed='false'] {
+.reader-tools .follow-button[aria-pressed='false'] {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
@@ -396,7 +396,7 @@
     flex-wrap: wrap;
     gap: 2px 9px;
   }
-  .reader-status .follow-button {
+  .reader-tools .follow-button {
     font-size: 13px;
     padding: 10px 11px;
   }
@@ -444,5 +444,164 @@
   .lyrics-widget .copy-button {
     margin-left: 0;
     justify-content: center;
+  }
+}
+
+/* Compact shared toolbar; the follow note stays outside the lyric viewport. */
+:root[data-theme='dark'] {
+  --annotation: #e5d6b8;
+}
+.reader-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.reader-tools .follow-button {
+  flex-direction: column;
+  gap: 2px;
+  margin-right: auto;
+  min-width: 176px;
+}
+.reader-tools .follow-button small {
+  font-size: 11px;
+  font-weight: 400;
+}
+.reader-tools .type-button,
+.reader-tools .icon-button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+.follow-guide {
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 0 0 6px;
+}
+.follow-guide > .sketch-arrow {
+  transform: scaleY(-1);
+  margin: 0;
+}
+.follow-guide span {
+  margin: 0 0 0 -5px;
+  max-width: 255px;
+}
+.reader-status {
+  min-height: 35px;
+  padding: 3px 0;
+}
+.reader-status .skip-intro {
+  min-height: 32px;
+}
+.reader-status > span {
+  padding-top: 0;
+}
+.transport-guides {
+  display: grid;
+  grid-template-columns: 43% 57%;
+  align-items: start;
+}
+.transport-guides .guide-note {
+  margin: 0;
+  gap: 0;
+  align-items: flex-end;
+}
+.step-guide {
+  justify-content: flex-end;
+  padding-right: 18px;
+}
+.step-guide > .sketch-arrow {
+  order: 2;
+  width: 90px;
+  height: 80px;
+}
+.step-guide span {
+  max-width: 175px;
+  margin: 0 -10px 3px 0;
+  transform: rotate(2deg);
+}
+.transport-guides .seek-guide span {
+  max-width: 280px;
+}
+.guide-note[data-entrance='waiting'] {
+  opacity: 0;
+}
+.guide-note[data-entrance='drawing'] .sketch-arrow path {
+  stroke-dasharray: 1;
+  animation: guide-ink 800ms ease-out both;
+}
+.guide-note[data-entrance='drawing'] > span {
+  animation: guide-words 850ms 100ms ease-out both;
+}
+@keyframes guide-ink {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes guide-words {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 760px) {
+  .reader-tools {
+    gap: 8px;
+  }
+  .reader-tools .follow-button {
+    min-width: 0;
+    flex: 1;
+    padding: 8px;
+  }
+  .follow-guide span {
+    max-width: 220px;
+  }
+  .transport-guides {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .transport-guides .step-guide {
+    order: 2;
+    padding: 0;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .transport-guides .step-guide > .sketch-arrow {
+    order: 0;
+    width: 65px;
+    height: 60px;
+  }
+  .transport-guides .step-guide span {
+    margin: -8px 17px 0 0;
+    max-width: 150px;
+    text-align: right;
+  }
+  .transport-guides .seek-guide {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .transport-guides .seek-guide > .sketch-arrow {
+    width: 70px;
+    height: 60px;
+  }
+  .transport-guides .seek-guide span {
+    font-size: 18px;
+    margin: -8px 0 0 21px;
+    max-width: 155px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-note[data-entrance] {
+    opacity: 1;
+  }
+  .guide-note[data-entrance] .sketch-arrow path,
+  .guide-note[data-entrance] > span {
+    animation: none;
   }
 }

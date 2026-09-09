@@ -56,24 +56,24 @@ test('demo opacity tracks scrolling both ways over a short distance, even with t
     await page.evaluate((p) => {
       const el = document.querySelector('.demo-reveal')!
       const absoluteTop = el.getBoundingClientRect().top + window.scrollY
-      const range = Math.min(250, innerHeight * 0.32)
+      const range = Math.min(375, innerHeight * 0.48)
       window.scrollTo({ top: absoluteTop - innerHeight + 35 + range * p, behavior: 'instant' })
     }, progress)
   }
   const opacity = () =>
     page.locator('.demo-content').evaluate((el) => Number(getComputedStyle(el).opacity))
-  await scrollToProgress(0.25)
-  await expect.poll(opacity).toBeGreaterThan(0.2)
-  await expect.poll(opacity).toBeLessThan(0.3)
+  await scrollToProgress(0.4)
+  await expect.poll(opacity).toBeGreaterThan(0.35)
+  await expect.poll(opacity).toBeLessThan(0.45)
   const start = await page.evaluate(() => scrollY)
   await scrollToProgress(1)
   await expect.poll(opacity).toBeGreaterThan(0.99)
-  expect((await page.evaluate(() => scrollY)) - start).toBeLessThanOrEqual(251)
+  expect((await page.evaluate(() => scrollY)) - start).toBeLessThanOrEqual(376)
   await scrollToProgress(0.5)
   await expect.poll(opacity).toBeGreaterThan(0.45)
   await expect.poll(opacity).toBeLessThan(0.55)
-  await scrollToProgress(0.25)
-  await expect.poll(opacity).toBeLessThan(0.3)
+  await scrollToProgress(0.4)
+  await expect.poll(opacity).toBeLessThan(0.45)
 })
 
 test('reduced motion keeps the example still and the teaching player fully visible', async ({
@@ -87,7 +87,7 @@ test('reduced motion keeps the example still and the teaching player fully visib
   await page.waitForTimeout(250)
   expect(await slider.inputValue()).toBe(value)
   await expect(page.locator('.demo-content')).toHaveCSS('opacity', '1')
-  await expect(page.locator('.sketch-arrow')).toHaveCount(5)
+  await expect(page.locator('.sketch-arrow')).toHaveCount(6)
 })
 
 test('card finishes its short pass and stays still until replayed', async ({ page }) => {

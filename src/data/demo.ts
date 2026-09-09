@@ -7,7 +7,7 @@ export const demoTrack = {
   artist: 'Googoosh',
   durationMs: 235413,
   audioSrc: '/audio/gharibe-ashena.mp3',
-  coverSrc: '/sleeve.svg',
+  coverSrc: '/gharibe-ashena-cover.jpg',
   source: 'LRCLIB 13013538',
 }
 

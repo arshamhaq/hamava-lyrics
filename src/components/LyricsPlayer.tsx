@@ -4,10 +4,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
-  Globe2,
   Heart,
   LoaderCircle,
-  LocateFixed,
   Maximize2,
   Minimize2,
   Pause,
@@ -18,18 +16,19 @@ import { activeLineAt, type LyricLine } from '../lib/timeline'
 import type { PlayerController } from '../hooks/useAudioPlayer'
 import { SeekBar } from './SeekBar'
 import { SketchArrow } from './SketchArrow'
+import { useGuideEntrance } from '../hooks/useGuideEntrance'
 
 interface Props {
   track: { title: string; artist: string; coverSrc: string }
   lines: readonly LyricLine[]
   player: PlayerController
-  modeLabel: string
+  guidesReady?: boolean
   guided?: boolean
 }
 
 // Shared presentation for the audio demo and future Spotify/manual controllers.
 // This component does not fetch tracks or decide how a seek reaches the player.
-export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }: Props) {
+export function LyricsPlayer({ track, lines, player, guidesReady = true, guided = false }: Props) {
   const active = activeLineAt(lines, player.positionMs)
   const [showPersian, setShowPersian] = useState(true)
   const [largeText, setLargeText] = useState(false)
@@ -45,6 +44,8 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
       return false
     }
   })
+  const widget = useRef<HTMLDivElement>(null)
+  useGuideEntrance(widget, tips, guidesReady)
   const list = useRef<HTMLDivElement>(null)
   const activeRow = useRef<HTMLDivElement>(null)
   const centerCurrentLine = () => {
@@ -92,7 +93,7 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
   const next = vocalLines.find((line) => line.startMs > player.positionMs + 100)
   const instrumental = !active?.finglish
   return (
-    <div className={`lyrics-widget ${focus ? 'reader-focused' : ''}`}>
+    <div ref={widget} className={`lyrics-widget ${focus ? 'reader-focused' : ''}`}>
       {guided && (
         <div className="guide-toolbar">
           <span>Play, drag, and try the controls</span>
@@ -109,7 +110,7 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
               src={track.coverSrc}
               width="640"
               height="640"
-              alt={`Illustrated cover for ${track.title}`}
+              alt={`Cover for ${track.title}`}
             />
           </div>
           <div className="track-heading">
@@ -127,32 +128,31 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
             </button>
           </div>
           {tips && (
-            <p className="guide-note cover-guide">
+            <p className="guide-note cover-guide" data-guide="cover">
               <SketchArrow />
               <span>Your Spotify cover goes here, when available.</span>
             </p>
           )}
         </aside>
         <div className="lyrics-panel">
-          <div className="lyrics-toolbar">
-            <div className="live-label">
-              <span className={`status-dot ${player.playing ? 'pulse' : ''}`} />
-              LYRICS<span className="preview-pill">{modeLabel}</span>
-            </div>
+          {tips && (
+            <p className="guide-note follow-guide" data-guide="follow">
+              <SketchArrow kind="swoop" />
+              <span>Lost your place? Jump back here.</span>
+            </p>
+          )}
+          <div className="reader-tools" aria-label="Lyric reading controls">
             <button
-              className="icon-button"
-              aria-label={focus ? 'Leave focus view' : 'Focus on lyrics'}
-              aria-pressed={focus}
-              onClick={() => setFocus(!focus)}
+              className="follow-button"
+              aria-pressed={following}
+              onClick={() => {
+                setFollowing(true)
+                centerCurrentLine()
+              }}
             >
-              {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              <span>Follow current line</span>
+              <small>(only synced mode)</small>
             </button>
-          </div>
-          <div className="reading-controls">
-            <div className="language-label">
-              <Globe2 size={14} />
-              Finglish
-            </div>
             <button
               className="type-button"
               aria-label="Larger lyrics"
@@ -160,6 +160,14 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
               onClick={() => setLargeText(!largeText)}
             >
               Aa
+            </button>
+            <button
+              className="icon-button"
+              aria-label={focus ? 'Leave focus view' : 'Focus on lyrics'}
+              aria-pressed={focus}
+              onClick={() => setFocus(!focus)}
+            >
+              {focus ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
             </button>
           </div>
           <div className="reader-status">
@@ -172,30 +180,12 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
                     ? 'Instrumental'
                     : 'Current verse'}
             </span>
-            <div className="reader-navigation">
-              {player.positionMs < (vocalLines[0]?.startMs ?? 0) && (
-                <button className="skip-intro" onClick={() => player.seek(vocalLines[0].startMs)}>
-                  Skip intro
-                </button>
-              )}
-              <button
-                className="follow-button"
-                aria-pressed={following}
-                onClick={() => {
-                  setFollowing(true)
-                  centerCurrentLine()
-                }}
-              >
-                <LocateFixed size={17} /> Follow current line
+            {player.positionMs < (vocalLines[0]?.startMs ?? 0) && (
+              <button className="skip-intro" onClick={() => player.seek(vocalLines[0].startMs)}>
+                Skip intro
               </button>
-            </div>
+            )}
           </div>
-          {tips && (
-            <p className="guide-note follow-guide">
-              <span>Lost your place? Jump back here.</span>
-              <SketchArrow kind="swoop" mirror />
-            </p>
-          )}
           <div
             id="lyrics"
             tabIndex={0}
@@ -255,11 +245,11 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
           </div>
           {tips && (
             <div className="action-guides">
-              <p className="guide-note">
+              <p className="guide-note" data-guide="persian">
                 <SketchArrow kind="swoop" />
                 <span>See the Persian, too</span>
               </p>
-              <p className="guide-note">
+              <p className="guide-note" data-guide="copy">
                 <SketchArrow mirror />
                 <span>Take this line with you</span>
               </p>
@@ -319,10 +309,16 @@ export function LyricsPlayer({ track, lines, player, modeLabel, guided = false }
         </button>
       </section>
       {tips && (
-        <p className="guide-note seek-guide">
-          <SketchArrow />
-          <span>Drag here. The music & words follow along.</span>
-        </p>
+        <div className="transport-guides">
+          <p className="guide-note step-guide" data-guide="step">
+            <SketchArrow kind="swoop" mirror />
+            <span>Back a line, or on to the next.</span>
+          </p>
+          <p className="guide-note seek-guide" data-guide="seek">
+            <SketchArrow />
+            <span>Drag here. The music & words follow along.</span>
+          </p>
+        </div>
       )}
       {player.error && (
         <p className="audio-error" role="alert">

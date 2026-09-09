@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { demoLines, demoTrack } from '../data/demo'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { LyricsPlayer } from './LyricsPlayer'
@@ -6,6 +6,7 @@ import { LyricsPlayer } from './LyricsPlayer'
 export function GuidedDemo() {
   const player = useAudioPlayer(demoTrack.audioSrc, demoTrack.durationMs)
   const section = useRef<HTMLElement>(null)
+  const [guidesReady, setGuidesReady] = useState(false)
   const reveal = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = section.current
@@ -15,11 +16,12 @@ export function GuidedDemo() {
     const update = () => {
       frame = 0
       const top = reveal.current!.getBoundingClientRect().top
-      const range = Math.min(250, window.innerHeight * 0.32)
+      const range = Math.min(375, window.innerHeight * 0.48)
       const progress = reduced.matches
         ? 1
         : Math.max(0, Math.min(1, (window.innerHeight - top - 35) / range))
       el.style.setProperty('--demo-progress', String(progress))
+      if (progress >= 1) setGuidesReady(true)
     }
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update)
@@ -59,7 +61,7 @@ export function GuidedDemo() {
             track={demoTrack}
             lines={demoLines}
             player={player}
-            modeLabel="Demo"
+            guidesReady={guidesReady}
             guided
           />
         </div>
