@@ -3,23 +3,20 @@ import { Moon, Sun } from 'lucide-react'
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState(
-    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+    document.documentElement.dataset.theme === 'light' ? 'light' : 'dark',
   )
   useEffect(() => {
-    const media = matchMedia('(prefers-color-scheme: dark)')
     const sync = () => {
       let saved
       try {
         saved = localStorage.getItem('hamava:theme')
       } catch {
-        /* Use device preference. */
+        /* Use the first-visit dark default. */
       }
-      setTheme(saved === 'light' || saved === 'dark' ? saved : media.matches ? 'dark' : 'light')
+      setTheme(saved === 'light' || saved === 'dark' ? saved : 'dark')
     }
-    media.addEventListener('change', sync)
     window.addEventListener('storage', sync)
     return () => {
-      media.removeEventListener('change', sync)
       window.removeEventListener('storage', sync)
     }
   }, [])
