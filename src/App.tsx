@@ -127,9 +127,9 @@ export default function App() {
                     <Search size={25} />
                   </span>
                   <span className="mode-card-text">
-                    <small>MANUAL SYNC</small>
+                    <small>READ & COPY</small>
                     <strong>Search a song</strong>
-                    <span>Listen anywhere. Set the lyrics pace.</span>
+                    <span>Find the words. Copy any line.</span>
                   </span>
                   <ArrowRight size={22} />
                 </a>
@@ -200,7 +200,7 @@ export default function App() {
               </p>
               <p className="dialog-note">
                 The homepage demo plays the supplied Googoosh recording with prepared Finglish
-                lyrics. Spotify sync and song search are the next steps.
+                lyrics. Search reads songs in Finglish. Spotify sync is coming next.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
                 Back to Hamava <ArrowRight size={16} />

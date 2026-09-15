@@ -28,7 +28,7 @@ test('landing explains both routes and the comparison without fetching audio or 
   await page.getByRole('link', { name: 'Home', exact: true }).click()
   await page.getByRole('link', { name: /Search a song/ }).click()
   await expect(page).toHaveURL(/\/search$/)
-  await expect(page.getByRole('heading', { name: 'Search a song' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Find your song.' })).toBeVisible()
 })
 
 test('real MP3 drives play, pause, seeking, highlighted lyrics and copying', async ({

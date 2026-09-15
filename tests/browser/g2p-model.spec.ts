@@ -74,3 +74,55 @@ test('real WASM model: full song, repeat reuse, cached rerun and raw parity', as
   expect(externalRequests).toEqual([])
   expect(modelRequests).toBe(2) // Fresh document initializes sessions from cached weights.
 })
+
+test('search converts a selected song with the shipped CPU engine and no external model hosts', async ({
+  page,
+  context,
+}) => {
+  test.skip(!assets, 'Set HAMAVA_G2P_ASSETS for the real song fixture.')
+  test.setTimeout(120000)
+  const song = JSON.parse(await readFile(path.join(assets!, 'song.json'), 'utf8'))
+  const count = song.plainLyrics.split(/\r?\n/).filter((s: string) => s.trim()).length
+  await context.route('**/api/search?*', (r) =>
+    r.fulfill({
+      json: {
+        songs: [
+          {
+            provider: 'lrclib',
+            id: String(song.id),
+            title: song.trackName,
+            artist: song.artistName,
+            album: song.albumName,
+            duration: song.duration,
+            hasLyrics: true,
+          },
+        ],
+      },
+    }),
+  )
+  await context.route('**/api/lyrics?*', (r) =>
+    r.fulfill({
+      json: {
+        title: song.trackName,
+        artist: song.artistName,
+        album: song.albumName,
+        duration: song.duration,
+        text: song.plainLyrics,
+        source: 'LRCLIB',
+        sourceUrl: 'https://lrclib.net/',
+      },
+    }),
+  )
+  const external: string[] = []
+  await context.route(/https:\/\/(huggingface\.co|cdn\.jsdelivr\.net)\//, (r) => {
+    external.push(r.request().url())
+    return r.abort()
+  })
+  await page.goto('/search')
+  await page.getByRole('combobox').fill('del bordi')
+  await page.getByRole('option').click()
+  await expect(page.locator('.reading-status')).toContainText('Ready · saved', { timeout: 90000 })
+  await expect(page.locator('.song-reader-lines [lang="fa-Latn"]')).toHaveCount(count)
+  await expect(page.getByRole('button', { name: /Follow|Play|Pause/i })).toHaveCount(0)
+  expect(external).toEqual([])
+})

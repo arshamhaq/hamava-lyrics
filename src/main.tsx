@@ -12,14 +12,19 @@ import { ConnectivityNotice } from './components/ConnectivityNotice'
 import './styles.css'
 import './experience.css'
 
+const SearchPage = React.lazy(() => import('./SearchPage'))
 const G2PTest = lazy(() => import('./G2PTest'))
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppUpdates>
       <ConnectivityNotice />
-      {['/g2p', '/lyrics'].includes(location.pathname) ||
-      new URLSearchParams(location.search).has('live') ? (
+      {location.pathname === '/search' ? (
+        <Suspense fallback={<p style={{ padding: 32 }}>Opening search…</p>}>
+          <SearchPage />
+        </Suspense>
+      ) : ['/g2p', '/lyrics'].includes(location.pathname) ||
+        new URLSearchParams(location.search).has('live') ? (
         <Suspense fallback={<p style={{ padding: 32 }}>Opening the browser test…</p>}>
           <G2PTest />
         </Suspense>

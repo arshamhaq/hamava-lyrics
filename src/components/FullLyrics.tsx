@@ -1,17 +1,18 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Copy, Pause, Play, X } from 'lucide-react'
+import { Pause, Play, X } from 'lucide-react'
 import { activeLineAt, type LyricLine } from '../lib/timeline'
 import type { PlayerController } from '../hooks/useAudioPlayer'
 import './FullLyrics.css'
+import { LyricRows, type ReadingLine } from './LyricRows'
 
-interface Props {
+type Props = {
   track: { title: string; artist: string }
-  lines: readonly LyricLine[]
-  player: PlayerController
-  synced: boolean
   onClose: () => void
-}
+} & (
+  | { synced: boolean; lines: readonly LyricLine[]; player: PlayerController }
+  | { synced: false; lines: readonly ReadingLine[]; player?: never }
+)
 
 // Uses the existing media controller; opening/closing never restarts playback.
 export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
@@ -21,8 +22,6 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
   const [large, setLarge] = useState(false)
   const [persian, setPersian] = useState(false)
   const [following, setFollowing] = useState(synced)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const copyRequest = useRef(0)
   const [message, setMessage] = useState('')
   const active = synced ? activeLineAt(lines, player.positionMs) : null
   const center = () => {
@@ -71,24 +70,6 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
     observer.observe(reader.current)
     return () => observer.disconnect()
   }, [following, synced])
-  useEffect(() => {
-    if (!copiedId) return
-    const timer = setTimeout(() => setCopiedId(null), 2000)
-    return () => clearTimeout(timer)
-  }, [copiedId])
-  const copy = async (line: LyricLine, number: number) => {
-    const request = ++copyRequest.current
-    setCopiedId(null)
-    try {
-      await navigator.clipboard.writeText(line.finglish)
-      if (request !== copyRequest.current) return
-      setCopiedId(line.id)
-      setMessage(`Line ${number} copied.`)
-    } catch {
-      if (request !== copyRequest.current) return
-      setMessage('Copy is unavailable. Select the text and copy it manually.')
-    }
-  }
   return createPortal(
     <dialog
       ref={dialog}
@@ -154,38 +135,15 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
             setFollowing(false)
         }}
       >
-        {lines
-          .filter((line) => line.finglish)
-          .map((line, index) => (
-            <div
-              key={line.id}
-              ref={line.id === active?.id ? currentRow : undefined}
-              className="full-lyric"
-              aria-current={line.id === active?.id ? 'true' : undefined}
-            >
-              <div className="full-lyric-text">
-                <span id={`full-line-${line.id}`} lang="fa-Latn">
-                  {line.finglish}
-                </span>
-                {persian && line.persian && (
-                  <span className="full-persian-line" lang="fa" dir="rtl">
-                    {line.persian}
-                  </span>
-                )}
-              </div>
-              <button
-                className="full-line-copy"
-                aria-label={`Copy line ${index + 1}`}
-                aria-describedby={`full-line-${line.id}`}
-                title={copiedId === line.id ? 'Copied!' : 'Copy this line'}
-                data-copied={copiedId === line.id}
-                onFocus={() => setFollowing(false)}
-                onClick={() => copy(line, index + 1)}
-              >
-                {copiedId === line.id ? <Check size={18} /> : <Copy size={18} />}
-              </button>
-            </div>
-          ))}
+        <LyricRows
+          lines={lines}
+          persian={persian}
+          activeId={active?.id}
+          currentRow={currentRow}
+          onInteract={() => setFollowing(false)}
+          onMessage={setMessage}
+          prefix="full"
+        />
       </div>
       <footer className="full-lyrics-footer">
         <div className="full-lyrics-actions">
