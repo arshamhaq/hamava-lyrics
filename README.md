@@ -7,7 +7,29 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: Del Bordi browser test (v0.5.0)
+## Current milestone: shared CPU conversion (v0.6.0)
+
+Negara now runs as the app's shared CPU converter. One browser worker keeps the
+model initialized between songs and caches completed lines. The model download
+cache survives normal updates and app repair; a new page still initializes its
+in-memory sessions from those cached bytes. WebGPU and server AI conversion have
+been removed from the active app. The homepage Googoosh demo is unchanged.
+
+Open **/lyrics**, **/?live**, or **/g2p** for the same CPU reader. Del Bordi loads by
+default; use another LRCLIB record ID or paste Persian to exercise another song.
+IDs and supplied timestamps stay outside model input. The reusable `lyricsEngine`
+API is ready for the search route; search suggestions and Spotify remain next work.
+
+Run `npm run dev` and open **http://localhost:5173/lyrics**. Deploy with
+`npm run deploy:token`, then open **https://hamava-lyrics.arshamhaqiqat.workers.dev/lyrics**
+and check **v0.6.0**. No app passphrase, AI binding or D1 setup is needed. Deployment
+is not performed automatically. [Integration and cache behavior](docs/cpu-lyrics-engine.md).
+
+Verified: 19 unit tests, production build/typecheck and deployment dry-run (ASSETS
+only). Browser tests exercise the preserved demo, CPU lifecycle, multiple sources,
+retired live link, model cache survival, and real-model reuse/reload behavior.
+
+## Previous milestone: Del Bordi browser test (v0.5.0)
 
 The isolated `/g2p` page fetches Shajarian's **Tasnife Del Bordi** from LRCLIB and
 runs public Negara v7 directly in a browser Web Worker. CPU is the initial mode;

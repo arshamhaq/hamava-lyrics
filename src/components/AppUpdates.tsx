@@ -130,7 +130,7 @@ export function AppUpdates({ children }: { children: ReactNode }) {
           <RefreshCw size={18} />
           <div>
             <strong>A new version is ready</strong>
-            <span>Reload when you’re ready. The live test will need unlocking again.</span>
+            <span>Reload when you’re ready. Downloaded model files stay on this device.</span>
           </div>
           <button className="update-apply" onClick={apply}>
             Reload app

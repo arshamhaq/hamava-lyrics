@@ -83,6 +83,8 @@ test('an installed app offers and activates a new release without losing local p
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready
       localStorage.setItem('hamava:demo-saved', 'true')
+      const models = await caches.open('hamava-negara-cache-test')
+      await models.put('/model-fixture', new Response('cached weights'))
     })
     await expect
       .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
@@ -95,6 +97,11 @@ test('an installed app offers and activates a new release without losing local p
     await page.getByRole('button', { name: 'Reload app', exact: true }).click()
     await expect(page.locator('html')).toHaveAttribute('data-test-release', '2')
     expect(await page.evaluate(() => localStorage.getItem('hamava:demo-saved'))).toBe('true')
+    expect(
+      await page.evaluate(async () =>
+        (await (await caches.open('hamava-negara-cache-test')).match('/model-fixture'))?.text(),
+      ),
+    ).toBe('cached weights')
     await context.setOffline(true)
     await page.reload()
     expect(await page.evaluate(() => document.documentElement.dataset.testRelease)).toBe('2')
@@ -114,6 +121,8 @@ test('the recovery page bypasses app navigation caching and preserves saved sett
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready
       localStorage.setItem('hamava:demo-saved', 'true')
+      const models = await caches.open('hamava-negara-cache-test')
+      await models.put('/model-fixture', new Response('cached weights'))
     })
     await expect
       .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
@@ -124,6 +133,11 @@ test('the recovery page bypasses app navigation caching and preserves saved sett
     await page.getByRole('button', { name: 'Repair and reload' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-test-release', '2')
     expect(await page.evaluate(() => localStorage.getItem('hamava:demo-saved'))).toBe('true')
+    expect(
+      await page.evaluate(async () =>
+        (await (await caches.open('hamava-negara-cache-test')).match('/model-fixture'))?.text(),
+      ),
+    ).toBe('cached weights')
   } finally {
     await page.goto('about:blank')
     await server.close()

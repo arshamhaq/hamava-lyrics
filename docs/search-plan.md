@@ -2,8 +2,10 @@
 
 Owner request, 2026-09-09: live song suggestions followed by an unsynced lyrics
 reader. This supersedes the earlier manual playback-slider idea for this route.
-Spotify and search are still placeholders in v0.4.6. No AI requests were made
-for this research.
+Spotify and search are still placeholders. Since v0.6.0, `lyricsEngine` provides
+shared local CPU conversion; see [its API](cpu-lyrics-engine.md). Fetch a selected
+source, cancel the previous selection and call that singleton. Do not create a
+new model worker for each song. No AI requests were made for the original research.
 
 ## Experience
 
