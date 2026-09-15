@@ -7,18 +7,22 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## CPU transliteration experiment — ready for owner run
+## CPU transliteration experiment — development results reviewed
 
-Run `bash scripts/g2p/run.sh` in this project folder. The isolated CPU benchmark
-compares public Homo-GE2PE and Negara v7 weights, fast and five-beam decoding,
-on 52 development cases with two passes. Sixteen holdout cases are reserved.
-Results stay in gitignored `research-private/g2p/`; tell Codex to review the latest
-CPU benchmark when complete. [Instructions and scoring limits](scripts/g2p/README.md).
+All 416 CPU outputs completed without errors or truncation. Raw outputs from all
+50 distinct development cases were reviewed. The two candidates have different
+pronunciation weaknesses; neither is accepted for production yet. Greedy decoding
+is the practical choice: five beams added latency without aggregate improvement.
 
-Verified: eight offline harness checks, dataset validation, and shell syntax.
-The full model benchmark and dependency installation are left for the owner to
-run; this is not a pronunciation acceptance result. No app code, deployment,
-model integration or PWA version change is included.
+A benchmark formatter defect omitted Homo-GE2PE's `$` → `sh` and `c` → `ch`.
+The fix has eight passing harness tests; a separate corrected report preserves
+all original inference results and unchanged reference labels.
+[Review and next test](docs/g2p-cpu-review-2026-09-15.md).
+
+Next owner run: `bash scripts/g2p/run.sh --split holdout --models homo negara --beams 1`.
+Sixteen reserved cases will compare both finalists without further tuning first.
+Phone/browser performance, complete-song testing and model integration remain
+pending. No app code, deployment or PWA version change is included.
 
 ## Current milestone: per-line copying in both readers (v0.4.6)
 
