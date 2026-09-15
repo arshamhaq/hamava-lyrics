@@ -7,7 +7,6 @@ import '@fontsource/manrope/latin-500.css'
 import '@fontsource/manrope/latin-600.css'
 import '@fontsource/manrope/latin-700.css'
 import App from './App'
-import LiveTest from './LiveTest'
 import { AppUpdates } from './components/AppUpdates'
 import { ConnectivityNotice } from './components/ConnectivityNotice'
 import './styles.css'
@@ -19,12 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppUpdates>
       <ConnectivityNotice />
-      {location.pathname === '/g2p' ? (
+      {['/g2p', '/lyrics'].includes(location.pathname) ||
+      new URLSearchParams(location.search).has('live') ? (
         <Suspense fallback={<p style={{ padding: 32 }}>Opening the browser test…</p>}>
           <G2PTest />
         </Suspense>
-      ) : new URLSearchParams(location.search).has('live') ? (
-        <LiveTest />
       ) : (
         <App />
       )}

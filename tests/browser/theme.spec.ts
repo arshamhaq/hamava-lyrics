@@ -14,7 +14,7 @@ test('starts dark on a light device and preserves the chosen theme across routes
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await page.goto('/?live')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  await expect(page.getByLabel('Test passphrase')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Test controls' })).toBeVisible()
   await page.getByRole('button', { name: 'Switch to dark mode' }).click()
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')

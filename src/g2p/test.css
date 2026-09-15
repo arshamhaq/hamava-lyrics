@@ -51,7 +51,8 @@
   flex: 1 1 260px;
   min-width: 0;
 }
-.g2p-controls select {
+.g2p-controls select,
+.g2p-controls input {
   font: inherit;
   border-radius: 12px;
   border: 1px solid #657392;
@@ -197,7 +198,7 @@
   background: #f6f0e5;
   border-color: #c8bfce;
 }
-[data-theme='light'] .g2p-page :is(select, textarea, .g2p-secondary, .g2p-copy) {
+[data-theme='light'] .g2p-page :is(select, input, textarea, .g2p-secondary, .g2p-copy) {
   color: #202b46;
   background: #e9e4f0;
   border-color: #a9a4bb;

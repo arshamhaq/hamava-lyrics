@@ -15,7 +15,12 @@ const FILES = [
     19858779,
   ],
 ]
-const send = (type, data = {}) => postMessage({ type, ...data })
+let activeJob = null
+const send = (type, data = {}) => postMessage({ type, jobId: activeJob?.id, ...data })
+const yieldTask = () => new Promise((resolve) => setTimeout(resolve, 0))
+const checkCancelled = () => {
+  if (activeJob?.cancelled) throw new DOMException('Cancelled', 'AbortError')
+}
 const normalize = (text) =>
   text
     .normalize('NFKC')
@@ -125,6 +130,8 @@ async function generate(encoder, decoder, text) {
       past[name] = new ort.Tensor('float32', new Float32Array(0), [1, 6, 0, 64])
     let token = 0
     for (let step = 0; step < 512; step++) {
+      if (step % 16 === 0) await yieldTask()
+      checkCancelled()
       const nextId = new ort.Tensor('int64', BigInt64Array.of(BigInt(token)), [1, 1])
       const branch = new ort.Tensor('bool', Uint8Array.of(step > 0 ? 1 : 0), [1])
       let output
@@ -176,92 +183,112 @@ async function generate(encoder, decoder, text) {
     dispose([ids, mask, ...Object.values(encoded), ...Object.values(past)])
   }
 }
-let busy = false
+
+// Sessions and completed lines survive song changes until this document closes.
+let encoder,
+  decoder,
+  runtimeLoaded = false
+const completed = new Map()
+async function ensureLoaded() {
+  if (encoder && decoder) return true
+  send('status', { message: 'Loading browser CPU runtime…', backend: 'wasm' })
+  if (!runtimeLoaded) {
+    importScripts(RUNTIME + 'ort.wasm.min.js')
+    ort.env.wasm.numThreads = 1
+    ort.env.wasm.proxy = false
+    ort.env.wasm.wasmPaths = RUNTIME
+    runtimeLoaded = true
+  }
+  try {
+    const options = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' }
+    const encoderBytes = await modelFile(FILES[0])
+    send('status', { message: 'Preparing encoder…' })
+    encoder = await ort.InferenceSession.create(encoderBytes, options)
+    const decoderBytes = await modelFile(FILES[1])
+    send('status', { message: 'Preparing decoder…' })
+    decoder = await ort.InferenceSession.create(decoderBytes, options)
+  } catch (error) {
+    await encoder?.release()
+    encoder = null
+    await decoder?.release()
+    decoder = null
+    throw error
+  }
+  return false
+}
 onmessage = async ({ data }) => {
-  if (busy || data.type !== 'run') return
-  busy = true
-  let encoder,
-    decoder,
-    backend = 'wasm'
+  if (data.type === 'cancel') {
+    if (activeJob?.id === data.jobId) activeJob.cancelled = true
+    return
+  }
+  if (data.type !== 'run') return
+  if (activeJob) {
+    postMessage({ type: 'error', jobId: data.jobId, message: 'The converter is busy.' })
+    return
+  }
+  activeJob = { id: data.jobId, cancelled: false }
   const started = performance.now()
   try {
     if (
       !Array.isArray(data.lines) ||
       !data.lines.length ||
-      data.lines.length > 120 ||
+      data.lines.length > 1000 ||
       data.lines.some((s) => typeof s !== 'string')
     )
       throw new Error('Invalid lyric lines.')
-    if (data.mode !== 'wasm') {
-      send('status', { message: 'Checking WebGPU…' })
-      let adapter
-      try {
-        adapter = await navigator.gpu?.requestAdapter()
-      } catch (e) {
-        if (data.mode === 'webgpu') throw e
-        send('notice', { message: 'WebGPU adapter check failed. Using browser CPU.' })
-      }
-      if (adapter) backend = 'webgpu'
-      else if (data.mode === 'webgpu')
-        throw new Error('WebGPU is unavailable here. Select Browser CPU or Automatic.')
-      else send('notice', { message: 'WebGPU is unavailable here. Using browser CPU.' })
-    }
-    send('status', {
-      message: `Loading ${backend === 'webgpu' ? 'WebGPU' : 'browser CPU'} runtime…`,
-      backend,
-    })
-    importScripts(RUNTIME + (backend === 'webgpu' ? 'ort.webgpu.min.js' : 'ort.wasm.min.js'))
-    ort.env.wasm.numThreads = 1
-    ort.env.wasm.proxy = false
-    ort.env.wasm.wasmPaths = RUNTIME
-    const options = {
-      executionProviders: backend === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'],
-      graphOptimizationLevel: 'all',
-    }
-    const encoderBytes = await modelFile(FILES[0])
-    send('status', { message: 'Preparing encoder…', backend })
-    encoder = await ort.InferenceSession.create(encoderBytes, options)
-    const decoderBytes = await modelFile(FILES[1])
-    send('status', { message: 'Preparing decoder…', backend })
-    decoder = await ort.InferenceSession.create(decoderBytes, options)
-    const loadMs = performance.now() - started
-    send('ready', { backend, loadMs, revision: REVISION, runtime: '1.27.0' })
-    const repeated = new Map()
-    let inferenceMs = 0
+    const warm = await ensureLoaded()
+    checkCancelled()
+    const loadMs = warm ? 0 : performance.now() - started
+    send('ready', { backend: 'wasm', warm, loadMs, revision: REVISION, runtime: '1.27.0' })
+    let inferenceMs = 0,
+      generatedLines = 0
+    const unique = new Set()
     for (let index = 0; index < data.lines.length; index++) {
+      await yieldTask()
+      checkCancelled()
       const key = normalize(data.lines[index])
-      send('status', { message: `Reading line ${index + 1} of ${data.lines.length}…`, backend })
-      const cached = repeated.has(key),
+      send('status', {
+        message: `Reading line ${index + 1} of ${data.lines.length}…`,
+        backend: 'wasm',
+      })
+      const cached = completed.has(key),
         begin = performance.now()
-      const result = cached ? repeated.get(key) : await generate(encoder, decoder, key)
-      const ms = cached ? 0 : performance.now() - begin
+      const result = !key
+        ? { raw: '', finglish: '', tokens: 0, truncated: false }
+        : cached
+          ? completed.get(key)
+          : await generate(encoder, decoder, key)
+      checkCancelled()
+      if (result.truncated)
+        throw new Error(
+          `Line ${index + 1} exceeded the output limit. Split it into shorter lines and retry.`,
+        )
+      const ms = cached || !key ? 0 : performance.now() - begin
       inferenceMs += ms
-      if (!result.truncated) repeated.set(key, result)
-      send('line', { index, ...result, ms, cached, backend })
+      if (key) {
+        unique.add(key)
+        if (!cached) {
+          generatedLines++
+          completed.set(key, result)
+          if (completed.size > 2048) completed.delete(completed.keys().next().value)
+        }
+      }
+      send('line', { index, ...result, ms, cached, backend: 'wasm' })
     }
     send('done', {
-      backend,
+      backend: 'wasm',
+      warm,
       loadMs,
       inferenceMs,
       elapsedMs: performance.now() - started,
-      uniqueLines: repeated.size,
+      uniqueLines: unique.size,
+      generatedLines,
     })
-  } catch (e) {
-    send('error', {
-      message: String(e?.message || e),
-      fallback: backend === 'webgpu' && data.mode === 'auto',
+  } catch (error) {
+    send(error?.name === 'AbortError' ? 'cancelled' : 'error', {
+      message: String(error?.message || error),
     })
   } finally {
-    try {
-      await decoder?.release()
-    } catch {
-      /* Preserve the useful error/result. */
-    }
-    try {
-      await encoder?.release()
-    } catch {
-      /* Worker termination also reclaims resources. */
-    }
-    busy = false
+    activeJob = null
   }
 }

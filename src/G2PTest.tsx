@@ -2,50 +2,37 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Copy, Download, Play, Square } from 'lucide-react'
 import { Brand } from './components/Brand'
 import { ThemeToggle } from './components/ThemeToggle'
-import { fetchSong, lyricLines, SONG } from './g2p/text'
+import { fetchLyrics, pastedLyrics, SONG, type LyricsSource } from './g2p/text'
+import { lyricsEngine, type SourceLyric, type LineOutput, type ConversionStats } from './g2p/engine'
 import './g2p/test.css'
-
-type Mode = 'auto' | 'wasm' | 'webgpu'
-type Result = {
-  index: number
-  raw: string
-  finglish: string
-  ms: number
-  cached: boolean
-  truncated: boolean
-  tokens: number
-}
-type Stats = { loadMs: number; inferenceMs: number; elapsedMs: number; uniqueLines: number }
 const seconds = (ms: number) => `${(ms / 1000).toFixed(2)} s`
-const engineName = (backend: string) =>
-  backend === 'webgpu'
-    ? 'WebGPU + CPU fallback'
-    : backend === 'wasm'
-      ? 'Browser CPU · WASM'
-      : 'Not started'
 
 export default function G2PTest() {
   const [text, setText] = useState(''),
-    [source, setSource] = useState('LRCLIB · loading')
-  const [fetching, setFetching] = useState(false),
-    [mode, setMode] = useState<Mode>('wasm')
-  const [backend, setBackend] = useState(''),
-    [lines, setLines] = useState<string[]>([])
-  const [results, setResults] = useState<Record<number, Result>>({}),
-    [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState('Loading the Persian lyrics…'),
-    [notice, setNotice] = useState(''),
-    [error, setError] = useState('')
-  const [progress, setProgress] = useState<number | null>(null),
-    [stats, setStats] = useState<Stats | null>(null)
-  const [loadMs, setLoadMs] = useState<number | null>(null),
-    [copied, setCopied] = useState<number | null>(null)
-  const worker = useRef<Worker | null>(null),
-    timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    [recordId, setRecordId] = useState(String(SONG.id))
+  const [source, setSource] = useState<LyricsSource | null>(null),
+    [fetching, setFetching] = useState(false)
+  const [lines, setLines] = useState<SourceLyric[]>([]),
+    [results, setResults] = useState<Record<number, SourceLyric & LineOutput>>({})
+  const [busy, setBusy] = useState(false),
+    [status, setStatus] = useState('Loading the Persian lyrics…')
+  const [notice, setNotice] = useState(''),
+    [error, setError] = useState(''),
+    [progress, setProgress] = useState<number | null>(null)
+  const [stats, setStats] = useState<ConversionStats | null>(null),
+    [loadMs, setLoadMs] = useState<number | null>(null)
+  const [copied, setCopied] = useState<number | null>(null)
   const fetchController = useRef<AbortController | null>(null),
-    meta = useRef<Record<string, unknown>>({})
-
-  async function loadSong() {
+    runController = useRef<AbortController | null>(null)
+  const meta = useRef<Record<string, unknown>>({})
+  function clearResults() {
+    setLines([])
+    setResults({})
+    setStats(null)
+    setLoadMs(null)
+    setCopied(null)
+  }
+  async function loadSong(id: number) {
     fetchController.current?.abort()
     const controller = new AbortController()
     fetchController.current = controller
@@ -53,17 +40,17 @@ export default function G2PTest() {
     setFetching(true)
     setError('')
     try {
-      const lyrics = await fetchSong(controller.signal)
+      const loaded = await fetchLyrics(id, controller.signal)
       if (fetchController.current !== controller) return
-      setText(lyrics)
-      setSource('LRCLIB · record 13708175')
-      setStatus('Ready to read Del Bordi.')
+      setSource(loaded)
+      setText(loaded.lines.map((line) => line.persian).join('\n'))
+      clearResults()
+      setStatus(`Ready to read ${loaded.title}.`)
     } catch (e) {
       if (fetchController.current !== controller) return
-      setSource('Lyrics not loaded')
       setError(
         controller.signal.aborted
-          ? 'Lyrics download timed out. Retry, or paste the Persian lyrics below.'
+          ? 'Lyrics download timed out. Retry or paste the Persian lyrics below.'
           : String((e as Error).message),
       )
     } finally {
@@ -72,135 +59,91 @@ export default function G2PTest() {
     }
   }
   useEffect(() => {
-    void loadSong()
+    void loadSong(SONG.id)
     return () => {
       fetchController.current?.abort()
       fetchController.current = null
-      worker.current?.terminate()
-      worker.current = null
-      clearTimeout(timer.current)
+      runController.current?.abort()
+      runController.current = null
     }
   }, [])
   function stop() {
-    worker.current?.terminate()
-    worker.current = null
-    clearTimeout(timer.current)
+    runController.current?.abort()
+    runController.current = null
     setBusy(false)
     setProgress(null)
     setStatus('Stopped. Finished lines remain below.')
   }
-  function start() {
-    let input: string[]
+  async function start() {
+    if (!window.isSecureContext) {
+      setError('Open on localhost or HTTPS for browser inference.')
+      return
+    }
+    let input: LyricsSource
     try {
-      input = lyricLines(text)
+      input = source ?? pastedLyrics(text)
     } catch (e) {
       setError((e as Error).message)
       return
     }
-    if (!window.isSecureContext) {
-      setError('Open this test on localhost or HTTPS for browser inference.')
-      return
-    }
-    setLines(input)
+    runController.current?.abort()
+    const controller = new AbortController()
+    runController.current = controller
+    setLines(input.lines)
     setResults({})
     setStats(null)
     setLoadMs(null)
     setError('')
     setNotice('')
     setBusy(true)
-    setBackend('')
     setCopied(null)
+    setProgress(null)
+    setStatus('Starting browser CPU conversion…')
     meta.current = {
       appVersion: __APP_VERSION__,
-      requestedMode: mode,
-      source,
-      song: SONG,
+      source: { ...input, lines: undefined },
       startedAt: new Date().toISOString(),
+      backend: 'wasm',
       userAgent: navigator.userAgent,
     }
-    launch(mode, input)
-  }
-  function launch(selected: Mode, input: string[]) {
-    worker.current?.terminate()
-    clearTimeout(timer.current)
-    setStatus('Starting browser inference…')
-    setProgress(null)
-    let instance: Worker
     try {
-      instance = new Worker(`/g2p-worker.js?v=${__APP_VERSION__}`)
+      const converted = await lyricsEngine.convert(input.lines, {
+        signal: controller.signal,
+        onLine: (line, index) => {
+          if (runController.current === controller) {
+            setResults((previous) => ({ ...previous, [index]: line }))
+            setProgress(null)
+          }
+        },
+        onEvent: (event) => {
+          if (runController.current !== controller) return
+          if (event.type === 'status') {
+            setStatus(event.message ?? 'Working…')
+            setProgress(event.total ? Math.min(1, (event.loaded ?? 0) / event.total) : null)
+          }
+          if (event.type === 'notice') setNotice(event.message ?? '')
+          if (event.type === 'ready') {
+            setLoadMs(event.loadMs ?? 0)
+            meta.current = { ...meta.current, revision: event.revision, runtime: event.runtime }
+          }
+        },
+      })
+      if (runController.current !== controller) return
+      setStats(converted.stats)
+      setStatus('Finished. These are Negara’s outputs, without pronunciation corrections.')
     } catch (e) {
-      setError(`Could not start the browser worker: ${(e as Error).message}`)
-      setBusy(false)
-      return
-    }
-    worker.current = instance
-    const armTimeout = () => {
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => {
-        if (worker.current !== instance) return
-        instance.terminate()
-        worker.current = null
+      if (runController.current !== controller) return
+      if ((e as Error).name !== 'AbortError') {
+        setError((e as Error).message)
+        setStatus('Conversion could not finish. Finished lines remain below.')
+      }
+    } finally {
+      if (runController.current === controller) {
         setBusy(false)
         setProgress(null)
-        setError(
-          'No progress for two minutes. Check your connection and try Browser CPU. Finished lines remain below.',
-        )
-      }, 120000)
-    }
-    armTimeout()
-    instance.onerror = (event) => {
-      if (worker.current !== instance) return
-      clearTimeout(timer.current)
-      instance.terminate()
-      worker.current = null
-      setBusy(false)
-      setProgress(null)
-      setError(event.message || 'The browser worker could not load. Try Browser CPU or reload.')
-    }
-    instance.onmessage = ({ data }) => {
-      if (worker.current !== instance) return
-      armTimeout()
-      if (data.backend) setBackend(data.backend)
-      if (data.type === 'status') {
-        setStatus(data.message)
-        setProgress(data.total ? Math.min(1, data.loaded / data.total) : null)
-      } else if (data.type === 'notice')
-        setNotice((previous) => [previous, data.message].filter(Boolean).join(' '))
-      else if (data.type === 'ready') {
-        setLoadMs(data.loadMs)
-        meta.current = { ...meta.current, revision: data.revision, runtime: data.runtime }
-      } else if (data.type === 'line') {
-        setResults((previous) => ({ ...previous, [data.index]: data }))
-        setProgress(null)
-      } else if (data.type === 'done') {
-        setStats(data)
-        setStatus('Finished. These are Negara’s outputs, without pronunciation corrections.')
-        setBusy(false)
-        setProgress(null)
-        clearTimeout(timer.current)
-        instance.terminate()
-        worker.current = null
-      } else if (data.type === 'error') {
-        clearTimeout(timer.current)
-        instance.terminate()
-        worker.current = null
-        if (data.fallback) {
-          meta.current = { ...meta.current, gpuFailure: data.message }
-          setNotice(
-            `WebGPU could not finish (${data.message}). Restarting this run on browser CPU.`,
-          )
-          setResults({})
-          setLoadMs(null)
-          launch('wasm', input)
-        } else {
-          setError(data.message)
-          setBusy(false)
-          setProgress(null)
-          setStatus('Run could not finish. Finished lines remain below.')
-        }
+        runController.current = null
       }
     }
-    instance.postMessage({ type: 'run', mode: selected, lines: input })
   }
   async function copyLine(index: number) {
     try {
@@ -213,18 +156,16 @@ export default function G2PTest() {
   function download() {
     const data = {
       ...meta.current,
-      backend,
       stats,
-      loadMs,
       complete: Boolean(stats),
-      lines: lines.map((persian, index) => ({ ...results[index], index, persian })),
+      lines: lines.map((line, index) => ({ ...line, ...results[index], index })),
     }
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
     )
     const link = document.createElement('a')
     link.href = url
-    link.download = 'hamava-del-bordi-negara.json'
+    link.download = 'hamava-lyrics-negara.json'
     link.click()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
@@ -240,32 +181,16 @@ export default function G2PTest() {
           <ArrowLeft size={17} /> Home
         </a>
         <header className="g2p-heading">
-          <span className="preview-pill">Browser experiment · v{__APP_VERSION__}</span>
-          <h1>
-            Del Bordi
-            <span lang="fa" dir="rtl">
-              دل بردی
-            </span>
-          </h1>
-          <p>Mohammad-Reza Shajarian · Payame Nasim</p>
+          <span className="preview-pill">CPU lyrics · v{__APP_VERSION__}</span>
+          <h1>{source?.title ?? 'Your lyrics'}</h1>
+          <p>{[source?.artist, source?.album].filter(Boolean).join(' · ')}</p>
           <p className="g2p-subtitle">
             Persian in. Finglish from Negara. Read each line as it appears.
           </p>
         </header>
         <section className="g2p-controls" aria-label="Test controls">
           <div className="g2p-control-row">
-            <label>
-              Run on
-              <select
-                value={mode}
-                disabled={busy}
-                onChange={(e) => setMode(e.target.value as Mode)}
-              >
-                <option value="auto">Automatic · try WebGPU first</option>
-                <option value="wasm">Browser CPU · WASM</option>
-                <option value="webgpu">WebGPU · test explicitly</option>
-              </select>
-            </label>
+            <span className="g2p-small">Browser CPU · ready for any supplied Persian lyrics</span>
             {busy ? (
               <button className="primary-button" onClick={stop}>
                 <Square size={17} /> Stop
@@ -284,23 +209,36 @@ export default function G2PTest() {
             </button>
           </div>
           <p className="g2p-small">
-            First run downloads about 33 MB of model weights plus browser runtime. Inference stays
-            on this device. No Cloudflare AI calls.
+            The first run downloads the model. It stays ready between songs in this page, and
+            downloaded weights survive app updates. Inference stays on your device.
           </p>
           <details className="g2p-source">
-            <summary>Persian source · {source}</summary>
+            <summary>Persian source · {source ? `LRCLIB ${source.id}` : 'Pasted lyrics'}</summary>
             <p>
-              <a href={SONG.url} target="_blank" rel="noreferrer">
-                View the LRCLIB record
-              </a>
+              {source?.url ? (
+                <a href={source.url} target="_blank" rel="noreferrer">
+                  View the LRCLIB record
+                </a>
+              ) : (
+                'Pasted Persian text'
+              )}
               . Text only; this test does not play or sync audio.
             </p>
+            <label htmlFor="record-id">LRCLIB record ID</label>
+            <input
+              id="record-id"
+              type="number"
+              min="1"
+              value={recordId}
+              disabled={busy || fetching}
+              onChange={(event) => setRecordId(event.target.value)}
+            />
             <button
               className="g2p-secondary"
               disabled={busy || fetching}
-              onClick={() => void loadSong()}
+              onClick={() => void loadSong(Number(recordId))}
             >
-              {fetching ? 'Loading lyrics…' : 'Reload Del Bordi lyrics'}
+              {fetching ? 'Loading lyrics…' : 'Load song record'}
             </button>
             <label htmlFor="g2p-persian">
               Persian lyrics (you can edit or paste text if LRCLIB cannot load)
@@ -314,14 +252,17 @@ export default function G2PTest() {
               rows={9}
               onChange={(e) => {
                 setText(e.target.value)
-                setSource('Edited / pasted Persian')
+                setSource(null)
+                clearResults()
               }}
             />
           </details>
         </section>
         <section className="g2p-status" aria-label="Run progress">
           <div>
-            <strong>{engineName(backend)}</strong>
+            <strong>
+              {stats?.warm ? 'Browser CPU · model already ready' : 'Browser CPU · WASM'}
+            </strong>
             <span>
               {finished}/{lines.length || '—'} lines
             </span>
@@ -337,23 +278,18 @@ export default function G2PTest() {
           {stats ? (
             <p className="g2p-small">
               Model setup {seconds(stats.loadMs)} · Conversion {seconds(stats.inferenceMs)} · Total{' '}
-              {seconds(stats.elapsedMs)} · {stats.uniqueLines} unique completed lines
+              {seconds(stats.elapsedMs)} · {stats.generatedLines} newly converted lines
             </p>
           ) : (
             loadMs !== null && <p className="g2p-small">Model setup {seconds(loadMs)}</p>
           )}
-          {backend === 'webgpu' && (
-            <p className="g2p-small">
-              WebGPU is enabled; unsupported operations may run on CPU. This is not a claim that
-              every operation uses the GPU.
-            </p>
-          )}
         </section>
         <ol className="g2p-lines" aria-label="Persian and generated Finglish">
-          {lines.map((persian, index) => {
+          {lines.map((line, index) => {
+            const persian = line.persian
             const result = results[index]
             return (
-              <li key={index} className={result ? 'g2p-line ready' : 'g2p-line'}>
+              <li key={line.id} className={result ? 'g2p-line ready' : 'g2p-line'}>
                 <div className="g2p-line-top">
                   <span>LINE {String(index + 1).padStart(2, '0')}</span>
                   {result && (
@@ -376,9 +312,7 @@ export default function G2PTest() {
                 {result && (
                   <>
                     <div className="g2p-small">
-                      {result.cached
-                        ? 'Repeated line · reused this run'
-                        : `${Math.round(result.ms)} ms`}
+                      {result.cached ? 'Reused from this session' : `${Math.round(result.ms)} ms`}
                       {result.truncated && (
                         <strong className="g2p-error"> · INCOMPLETE: output limit reached</strong>
                       )}
