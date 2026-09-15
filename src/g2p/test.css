@@ -1,0 +1,246 @@
+.g2p-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 18px 24px 80px;
+}
+.g2p-heading {
+  padding: 32px 0 24px;
+}
+.g2p-heading h1 {
+  font-size: clamp(2.3rem, 7vw, 4rem);
+  margin: 18px 0 10px;
+  letter-spacing: -0.045em;
+}
+.g2p-heading h1 span {
+  display: inline-block;
+  margin-inline-start: 24px;
+  font-size: 0.6em;
+  color: #b5b8e5;
+  letter-spacing: normal;
+}
+.g2p-heading p {
+  margin: 8px 0;
+}
+.g2p-subtitle {
+  color: #adb8ce;
+  line-height: 1.6;
+}
+.g2p-controls,
+.g2p-status,
+.g2p-line {
+  border: 1px solid #35425d;
+  border-radius: 22px;
+  background: linear-gradient(130deg, #142238, #1d203c);
+  padding: 24px;
+}
+.g2p-control-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.g2p-control-row .primary-button {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.g2p-control-row label {
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.g2p-controls select {
+  font: inherit;
+  border-radius: 12px;
+  border: 1px solid #657392;
+  padding: 12px;
+  color: #f0eadf;
+  background: #111d32;
+  width: 100%;
+  min-height: 48px;
+}
+.g2p-page button {
+  min-height: 44px;
+}
+.g2p-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.g2p-secondary,
+.g2p-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #566383;
+  border-radius: 12px;
+  background: #242d4a;
+  color: #f0eadf;
+  padding: 10px 16px;
+  font: inherit;
+  cursor: pointer;
+}
+.g2p-small {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #b8c1d5;
+}
+.g2p-source {
+  margin-top: 20px;
+  border-top: 1px solid #35425d;
+  padding-top: 16px;
+}
+.g2p-page summary {
+  cursor: pointer;
+  padding: 9px 0;
+  font-size: 15px;
+}
+.g2p-source p {
+  line-height: 1.6;
+}
+.g2p-source label {
+  display: block;
+  margin: 16px 0 8px;
+  font-size: 14px;
+}
+.g2p-source textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #566383;
+  background: #111d32;
+  border-radius: 12px;
+  color: #f4ecdc;
+  padding: 16px;
+  font: 19px/1.9 sans-serif;
+  resize: vertical;
+}
+.g2p-status {
+  margin-top: 18px;
+  background: #132134;
+}
+.g2p-status > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.g2p-status p {
+  line-height: 1.6;
+  margin: 10px 0 0;
+  overflow-wrap: anywhere;
+}
+.g2p-status progress {
+  width: 100%;
+  height: 8px;
+  margin-top: 16px;
+  accent-color: #b8a4f4;
+}
+.g2p-error {
+  color: #ffb3b0;
+}
+.g2p-lines {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+  list-style: none;
+  margin: 24px 0 0;
+}
+.g2p-line {
+  background: #142035;
+}
+.g2p-line.ready {
+  border-color: #5d648d;
+}
+.g2p-line-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #b8c1d5;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  min-height: 44px;
+}
+.g2p-copy {
+  letter-spacing: normal;
+  font-size: 14px;
+}
+.g2p-persian {
+  font: 22px/1.9 sans-serif;
+  margin: 12px 0;
+}
+.g2p-finglish {
+  color: #f4e5c6;
+  font-size: 23px;
+  line-height: 1.6;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.g2p-line:not(.ready) .g2p-finglish {
+  font-size: 17px;
+  color: #9aa9c0;
+}
+.g2p-raw {
+  margin-top: 8px;
+  color: #b8c1d5;
+}
+.g2p-raw code {
+  display: block;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  padding: 10px 0;
+}
+[data-theme='light'] .g2p-controls,
+[data-theme='light'] .g2p-status,
+[data-theme='light'] .g2p-line {
+  color: #202b46;
+  background: #f6f0e5;
+  border-color: #c8bfce;
+}
+[data-theme='light'] .g2p-page :is(select, textarea, .g2p-secondary, .g2p-copy) {
+  color: #202b46;
+  background: #e9e4f0;
+  border-color: #a9a4bb;
+}
+[data-theme='light'] .g2p-page :is(.g2p-small, .g2p-subtitle, .g2p-raw, .g2p-line-top) {
+  color: #535d77;
+}
+[data-theme='light'] .g2p-finglish {
+  color: #47306c;
+}
+[data-theme='light'] .g2p-error {
+  color: #a22e3d;
+}
+[data-theme='light'] .g2p-heading h1 span {
+  color: #68538b;
+}
+@media (max-width: 600px) {
+  .g2p-shell {
+    padding: 14px 16px 56px;
+  }
+  .g2p-heading {
+    padding: 24px 0 18px;
+  }
+  .g2p-controls,
+  .g2p-status,
+  .g2p-line {
+    padding: 18px;
+    border-radius: 18px;
+  }
+  .g2p-heading h1 span {
+    margin-inline-start: 16px;
+  }
+  .g2p-control-row label {
+    flex-basis: 100%;
+  }
+  .g2p-control-row button {
+    flex: 1;
+  }
+  .g2p-finglish {
+    font-size: 21px;
+  }
+  .g2p-status > div:first-child {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
