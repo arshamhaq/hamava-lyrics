@@ -7,6 +7,22 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Download fix (v0.6.1)
+
+Fresh deployed browsers failed fetching weights directly from Hugging Face, even
+when a local browser's cached model worked. Dev/build now prepare SHA-256 verified
+weights and the CPU runtime under `public/engine-assets/` (ignored by Git). Vite
+copies them into the deployment; clients download only from Hamava's own origin.
+Each file fits the Static Assets size limit. No inference runs on the server.
+Existing verified model caches are reused under their original cache keys.
+
+Run `npm run deploy:token` to ship the fix. The first build on a new computer needs
+access to Hugging Face/jsDelivr; subsequent builds reuse verified local assets.
+The app shell excludes these large files from precaching: they load on conversion.
+Runtime attribution is included with the assets. The model's existing `other`
+license metadata is unchanged; this private experiment does not establish public
+redistribution terms.
+
 ## Current milestone: shared CPU conversion (v0.6.0)
 
 Negara now runs as the app's shared CPU converter. One browser worker keeps the

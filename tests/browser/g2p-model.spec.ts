@@ -26,22 +26,15 @@ test('real WASM model: full song, repeat reuse, cached rerun and raw parity', as
   await context.route('https://lrclib.net/api/get/13708175', (r) =>
     r.fulfill({ json: song, headers: { 'access-control-allow-origin': '*' } }),
   )
-  await context.route('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/**', async (r) => {
-    const name = new URL(r.request().url()).pathname.split('/').at(-1)!
-    await r.fulfill({
-      path: path.join(root, 'runtime', name),
-      contentType: name.endsWith('.wasm') ? 'application/wasm' : 'text/javascript',
-      headers: { 'access-control-allow-origin': '*' },
-    })
+  const externalRequests: string[] = []
+  await context.route(/https:\/\/(huggingface\.co|cdn\.jsdelivr\.net)\//, (r) => {
+    externalRequests.push(r.request().url())
+    return r.abort()
   })
-  await context.route('https://huggingface.co/**', async (r) => {
-    modelRequests++
-    const name = new URL(r.request().url()).pathname.split('/').at(-1)!
-    await r.fulfill({
-      path: path.join(root, 'model', name),
-      contentType: 'application/octet-stream',
-      headers: { 'access-control-allow-origin': '*' },
-    })
+  // Exercise the actual built assets, with all former CDN/model hosts blocked.
+  page.on('request', (request) => {
+    if (request.url().includes('/engine-assets/') && request.url().endsWith('.onnx'))
+      modelRequests++
   })
   await page.goto('/g2p')
   await page.getByRole('button', { name: 'Read with Negara' }).click()
@@ -78,5 +71,6 @@ test('real WASM model: full song, repeat reuse, cached rerun and raw parity', as
   await page.reload()
   await page.getByRole('button', { name: 'Read with Negara' }).click()
   await expect(page.getByRole('status')).toContainText('Finished.', { timeout: 60000 })
+  expect(externalRequests).toEqual([])
   expect(modelRequests).toBe(2) // Fresh document initializes sessions from cached weights.
 })

@@ -12,3 +12,6 @@ coverage/
 .DS_Store
 *.log
 research-private/
+
+# Verified model/runtime downloads, prepared automatically before dev/build.
+public/engine-assets/

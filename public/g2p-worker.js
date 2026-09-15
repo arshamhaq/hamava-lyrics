@@ -1,7 +1,8 @@
 /* Isolated Negara v7 evaluation. No server inference or pronunciation corrections. */
 const REVISION = '5720b2c489764572a5c8b55ea7b8d910258c88ef'
 const MODEL_BASE = `https://huggingface.co/Reza2kn/gooya-v1-ONNX-fp16/resolve/${REVISION}/negara-g2p-v7/onnx/`
-const RUNTIME = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/'
+const DOWNLOAD_BASE = `/engine-assets/negara-${REVISION}/`
+const RUNTIME = new URL('/engine-assets/ort-1.27.0/', self.location.origin).href
 const CACHE = `hamava-negara-${REVISION}`
 const FILES = [
   [
@@ -46,7 +47,12 @@ async function modelFile([name, hash, size]) {
   } catch {
     /* Private browsing may disable storage. */
   }
-  const cached = await cache?.match(url)
+  let cached
+  try {
+    cached = await cache?.match(url)
+  } catch {
+    /* Storage may be unavailable. */
+  }
   let bytes
   if (cached) {
     send('status', { message: `Reading cached ${name}…` })
@@ -56,8 +62,15 @@ async function modelFile([name, hash, size]) {
     const controller = new AbortController()
     let timeout = setTimeout(() => controller.abort(), 120000)
     try {
-      const response = await fetch(url, { signal: controller.signal })
-      if (!response.ok) throw new Error(`Model download returned HTTP ${response.status}.`)
+      const response = await fetch(DOWNLOAD_BASE + name, { signal: controller.signal })
+      if (!response.ok)
+        throw new Error(
+          `${name} download returned HTTP ${response.status}. Reload Hamava and retry.`,
+        )
+      if (response.headers.get('Content-Type')?.includes('text/html'))
+        throw new Error(
+          `${name} is missing from this deployment. Rebuild and deploy Hamava with its engine assets.`,
+        )
       if (!response.body) throw new Error('Could not stream the model download.')
       const reader = response.body.getReader(),
         chunks = []
@@ -83,6 +96,10 @@ async function modelFile([name, hash, size]) {
         offset += chunk.length
       }
       bytes = bytes.buffer
+    } catch (error) {
+      throw new Error(
+        `${name} could not download from Hamava. Check your connection and retry. ${error.message || error}`,
+      )
     } finally {
       clearTimeout(timeout)
       controller.abort()
@@ -193,7 +210,13 @@ async function ensureLoaded() {
   if (encoder && decoder) return true
   send('status', { message: 'Loading browser CPU runtime…', backend: 'wasm' })
   if (!runtimeLoaded) {
-    importScripts(RUNTIME + 'ort.wasm.min.js')
+    try {
+      importScripts(RUNTIME + 'ort.wasm.min.js')
+    } catch {
+      throw new Error(
+        'The browser CPU runtime could not load from Hamava. Reload the app and retry.',
+      )
+    }
     ort.env.wasm.numThreads = 1
     ort.env.wasm.proxy = false
     ort.env.wasm.wasmPaths = RUNTIME

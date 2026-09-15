@@ -12,7 +12,7 @@ describe('browser G2P boundaries', () => {
     expect(() => lyricLines('آ'.repeat(257))).toThrow()
   })
   it('decodes symbols without correcting model pronunciation', () => {
-    const context = vm.createContext({ postMessage: () => {} })
+    const context = vm.createContext({ postMessage: () => {}, URL, self: { location: { origin: 'https://app.test' } } })
     vm.runInContext(readFileSync('public/g2p-worker.js', 'utf8'), context)
     const convert = (input: string) =>
       vm.runInContext(`finglish(${JSON.stringify(input)})`, context)

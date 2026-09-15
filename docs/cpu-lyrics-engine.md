@@ -36,8 +36,10 @@ No D1 permission, AI binding or test passphrase is needed for the new deployment
 4. App version changes do not change the model-cache namespace or pinned model URL.
    Normal PWA updates and Repair app cache preserve `hamava-negara-*` caches.
    A different model revision, clearing site storage, or browser storage eviction
-   can require another download. Runtime JS/WASM use unchanged version-pinned CDN
-   URLs and normal browser HTTP caching.
+   can require another download. Since v0.6.1, model and runtime downloads use version-pinned paths on
+   Hamava itself. Legacy model cache keys stay unchanged to reuse existing bytes.
+   Runtime JS/WASM use immutable HTTP caching. Dev/build verifies the assets before
+   copying them into the deployment; no inference happens in Cloudflare.
 
 The homepage does not download or initialize the model. The first conversion does.
 This preserves the demo's network behavior and avoids a large unsolicited download

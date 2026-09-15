@@ -48,7 +48,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        globIgnores: ['**/update.html'],
+        globIgnores: ['**/update.html', '**/engine-assets/**'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         // Never cache auth callbacks or future personalized API responses.

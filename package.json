@@ -1,6 +1,6 @@
 {
   "name": "hamava",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -22,7 +22,9 @@
     "deploy": "npm run build && wrangler deploy",
     "deploy:token": "bash scripts/deploy-with-token.sh",
     "setup:live": "bash scripts/setup-live.sh",
-    "dev:worker": "wrangler dev --port 8787"
+    "dev:worker": "wrangler dev --port 8787",
+    "predev": "node scripts/prepare-engine-assets.mjs",
+    "prebuild": "node scripts/prepare-engine-assets.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.0",
