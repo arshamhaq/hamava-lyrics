@@ -12,6 +12,8 @@ class BenchmarkChecks(unittest.TestCase):
         self.assertEqual(display('salAm xoS','negara'),'salaam khosh')
         self.assertEqual(display('s/lam xoS','homo'),'salaam khosh')
         self.assertEqual(display('ketabe1','homo'),'ketaabe')
+        self.assertEqual(display('ce$mat @em$/b','homo'),"cheshmaat 'emshab")
+        self.assertEqual(display('CeSmAt emSab','negara'),'cheshmaat emshab')
     def test_missing_added_words_count(self):
         self.assertEqual(score('delam tang shode',['delam barat tang shode'])['word_edits'],1)
         self.assertEqual(score('delam kheili barat tang shode',['delam barat tang shode'])['word_edits'],1)

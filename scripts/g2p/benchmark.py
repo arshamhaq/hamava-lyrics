@@ -12,7 +12,7 @@ def normalize_input(text):
 def display(raw, model):
     # Different model phone alphabets. Single pass prevents cascading replacements.
     maps = {'S':'sh','C':'ch','Z':'zh','x':'kh','q':'gh','A':'aa','u':'oo','1':''}
-    if model == 'homo': maps.update({'/':'a','@':"'",'a':'aa'})
+    if model == 'homo': maps.update({'/':'a','@':"'",'a':'aa','$':'sh','c':'ch'})
     return ''.join(maps.get(c,c) for c in raw).strip()
 
 def canonical(text):
