@@ -7,21 +7,23 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## CPU transliteration experiment — development results reviewed
+## CPU transliteration experiment — reserved results reviewed
 
-All 416 CPU outputs completed without errors or truncation. Raw outputs from all
-50 distinct development cases were reviewed. The two candidates have different
-pronunciation weaknesses; neither is accepted for production yet. Greedy decoding
-is the practical choice: five beams added latency without aggregate improvement.
+Development and reserved CPU evaluations completed. All 64 reserved outputs
+(16 sentences, two models, two passes) completed without errors or truncation.
+Median generation was 92 ms/line for public Negara v7 and 98 ms for Homo-GE2PE.
+Both still make material pronunciation errors. Neither has passed production
+quality or real-phone acceptance. Beam 1 remains the practical decoding choice.
 
-A benchmark formatter defect omitted Homo-GE2PE's `$` → `sh` and `c` → `ch`.
-The fix has eight passing harness tests; a separate corrected report preserves
-all original inference results and unchanged reference labels.
-[Review and next test](docs/g2p-cpu-review-2026-09-15.md).
+Public Negara v7 is selected for the next isolated browser feasibility test based
+on its existing ONNX starting point, not a decisive quality win. Review includes
+formatter corrections and raw-phone inspection; original results remain intact.
+[Development review](docs/g2p-cpu-review-2026-09-15.md) ·
+[Reserved results and decision](docs/g2p-holdout-review-2026-09-15.md).
 
-Next owner run: `bash scripts/g2p/run.sh --split holdout --models homo negara --beams 1`.
-Sixteen reserved cases will compare both finalists without further tuning first.
-Phone/browser performance, complete-song testing and model integration remain
+The 16 reserved sentences have now been examined. If we tune pronunciation rules,
+we must create fresh final evaluation cases. No further CPU benchmark rerun is
+needed now. Full-song tests, phone performance and model integration remain
 pending. No app code, deployment or PWA version change is included.
 
 ## Current milestone: per-line copying in both readers (v0.4.6)
