@@ -1,3 +1,4 @@
+import { searchApi } from './search'
 import type { Env } from './env'
 const json = (body: unknown, status: number) =>
   Response.json(body, {
@@ -15,6 +16,7 @@ export default {
       response.headers.set('Cache-Control', 'no-store')
       return response
     }
+    if (['/api/search', '/api/lyrics'].includes(url.pathname)) return searchApi(request)
     if (['/api/song', '/api/batch'].includes(url.pathname))
       return json(
         {

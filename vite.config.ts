@@ -1,11 +1,30 @@
 import { defineConfig } from 'vite'
+import { searchApi } from './worker/search'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import packageInfo from './package.json'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-function localConnectivity(request: IncomingMessage, response: ServerResponse, next: () => void) {
-  if (request.url?.split('?')[0] !== '/api/connectivity') {
+async function localConnectivity(
+  request: IncomingMessage,
+  response: ServerResponse,
+  next: () => void,
+) {
+  const pathname = request.url?.split('?')[0]
+  if (pathname === '/api/search' || pathname === '/api/lyrics') {
+    const controller = new AbortController()
+    request.on('aborted', () => controller.abort())
+    const result = await searchApi(
+      new Request(new URL(request.url!, 'http://localhost'), {
+        method: request.method,
+        signal: controller.signal,
+      }),
+    )
+    response.writeHead(result.status, Object.fromEntries(result.headers))
+    response.end(await result.text())
+    return
+  }
+  if (pathname !== '/api/connectivity') {
     next()
     return
   }
