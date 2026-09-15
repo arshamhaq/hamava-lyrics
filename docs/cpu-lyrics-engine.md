@@ -9,8 +9,8 @@ Googoosh audio, timings, Finglish and guided player remain unchanged.
 Run `npm run dev`, then open **http://localhost:5173/lyrics**. The previous `/?live`
 and `/g2p` addresses open the same CPU reader. There is no passphrase or engine
 selector. Del Bordi remains the default source. Read it, then expand Persian source
-and supply another LRCLIB record ID or paste lyrics. Search suggestions come next;
-this is the integration workspace, not the completed search route.
+and supply another LRCLIB record ID or paste lyrics. The completed `/search` route (v0.7.0) uses the same engine; this page remains
+the integration workspace for record IDs and raw output.
 
 Each converted row has Persian, Finglish, raw pronunciation and Copy. Save results
 exports source metadata, line IDs, optional timing, model revision and timings.
@@ -92,7 +92,7 @@ worker; a later job can initialize again from the verified cache.
 
 `/api/song` and `/api/batch` return **410 Gone**, including for old app versions.
 They never access credentials, LRCLIB, D1 or Workers AI. The deployed Worker now
-only serves assets, connectivity, cache repair and explicit API errors. AI and D1
+serves assets, connectivity, cache repair and bounded search/lyrics lookups. AI and D1
 bindings were removed from `wrangler.jsonc`. Existing remote databases and secrets
 were not deleted. Old conversion parsing/batching helpers and research documents
 remain historical material; they are not an inference path in the active app.

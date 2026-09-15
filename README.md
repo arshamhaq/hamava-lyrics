@@ -7,6 +7,30 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Current milestone: song search and unsynced reader (v0.7.0)
+
+The homepage Search a song button now opens `/search`: a live dropdown with title,
+artist, album/version, duration and lyric availability. Partial titles and bounded
+aliases find Tasnife Del Bordi from `del bordi`, `tasnim del bordi` or `دل بردی`.
+Select a song for automatic on-device CPU conversion, per-line copying, Persian
+text, Aa and full-window reading. This route has no playback or Follow controls.
+The homepage demo and Spotify placeholder remain separate.
+
+LRCLIB is primary. lyrics.ovh is a best-effort alternate lookup/catalog; live
+Persian samples missed, so it is not a coverage guarantee. Paste import works
+when providers have no match. Up to ten completed songs are saved on this device
+for offline reading. [Behavior, sources and live findings](docs/search-plan.md).
+
+Run `npm run dev` and open **http://localhost:5173/search**. The same search API
+handler works locally without starting a second server. Deploy the combined
+release with `npm run deploy:token` from this project and confirm **v0.7.0**.
+The model download fix below is included; no new credentials or bindings needed.
+
+Verified: 25 unit tests, typecheck/production build, deployment dry-run and all
+70 browser cases across the full run and focused repair rerun. Real CPU checks
+cover both the test reader and search with external model hosts blocked.
+
+
 ## Download fix (v0.6.1)
 
 Fresh deployed browsers failed fetching weights directly from Hugging Face, even
@@ -23,7 +47,7 @@ Runtime attribution is included with the assets. The model's existing `other`
 license metadata is unchanged; this private experiment does not establish public
 redistribution terms.
 
-## Current milestone: shared CPU conversion (v0.6.0)
+## Previous milestone: shared CPU conversion (v0.6.0)
 
 Negara now runs as the app's shared CPU converter. One browser worker keeps the
 model initialized between songs and caches completed lines. The model download
