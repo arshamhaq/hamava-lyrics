@@ -4,17 +4,6 @@
   "compatibility_date": "2026-09-07",
   "workers_dev": true,
   "main": "worker/index.ts",
-  "ai": { "binding": "AI" },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "hamava-lyrics-cache",
-      // Provisioned by setup:live; this database ID is not a secret.
-      "database_id": "927b2aa7-9c36-4439-81bc-ec439c228d54",
-      "migrations_dir": "migrations",
-    },
-  ],
-  "rules": [{ "type": "Text", "globs": ["**/*.txt"], "fallthrough": true }],
   "assets": {
     "binding": "ASSETS",
     "run_worker_first": ["/api/*"],
