@@ -7,6 +7,25 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
+## Current milestone: Del Bordi browser test (v0.5.0)
+
+The isolated `/g2p` page fetches Shajarian's **Tasnife Del Bordi** from LRCLIB and
+runs public Negara v7 directly in a browser Web Worker. CPU is the initial mode;
+WebGPU and Automatic fallback are selectable. Each line shows Persian, generated
+Finglish, raw phones, copy, and timing. Stop/rerun and a JSON download are available.
+There are no Cloudflare AI inference calls and no manually substituted output.
+
+Run `npm run dev`, open **http://localhost:5173/g2p**, and press **Read with Negara**.
+The first CPU run downloads roughly 47 MB including model/runtime. On the phone,
+deploy with `npm run deploy:token`, then open
+**https://hamava-lyrics.arshamhaqiqat.workers.dev/g2p** and check **v0.5.0**.
+Deployment and customer acceptance remain pending.
+
+Verified: 15 unit checks and production build; existing browser regressions,
+new desktop/mobile UI checks, and real WASM model checks. All 33 song lines completed
+on CPU and software WebGPU with identical raw output. Software GPU speed is not a
+phone GPU benchmark. [Setup, evidence and limitations](docs/g2p-browser-test.md).
+
 ## CPU transliteration experiment — reserved results reviewed
 
 Development and reserved CPU evaluations completed. All 64 reserved outputs
@@ -23,10 +42,10 @@ formatter corrections and raw-phone inspection; original results remain intact.
 
 The 16 reserved sentences have now been examined. If we tune pronunciation rules,
 we must create fresh final evaluation cases. No further CPU benchmark rerun is
-needed now. Full-song tests, phone performance and model integration remain
-pending. No app code, deployment or PWA version change is included.
+needed now. The isolated browser test above now covers the requested song;
+phone performance and production pronunciation acceptance remain pending.
 
-## Current milestone: per-line copying in both readers (v0.4.6)
+## Previous milestone: per-line copying in both readers (v0.4.6)
 
 The regular player now has a small copy icon before every sung line, replacing
 its decorative line number. Phone targets remain 44 pixels wide and high.
