@@ -7,7 +7,23 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current milestone: song search and unsynced reader (v0.7.0)
+## Current fix: decoder repetition recovery (v0.7.1)
+
+Some lyrics made Negara repeat sounds until its output limit, which previously
+stopped the entire song. Retry repeated the same failure. The worker now retries
+those lines as smaller phrases while keeping the original lyric rows intact.
+Unrecoverable lines stay visibly marked in Persian while later lines continue.
+Incomplete output is never shown as valid Finglish or saved as a complete song.
+
+The reported Khanoom Vaziri and Asheghan lines reproduced the decoder loop and
+now complete with bounded recovery. Real full-song checks converted 107/108 lines
+of Khanoom Vaziri (one kept in Persian) and 48/48 of Asheghan on desktop/mobile
+emulation. The same CPU model/cache is retained.
+[Cause, recovery limits and regression checks](docs/g2p-recovery.md).
+
+Deploy with `npm run deploy:token` and accept Reload app; confirm **v0.7.1**.
+
+## Previous milestone: song search and unsynced reader (v0.7.0)
 
 The homepage Search a song button now opens `/search`: a live dropdown with title,
 artist, album/version, duration and lyric availability. Partial titles and bounded

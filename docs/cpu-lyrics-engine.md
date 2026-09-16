@@ -72,7 +72,10 @@ The engine also accepts lines from any other source, without LRCLIB dependence:
 source metadata is retained. Input is snapshotted and IDs must be unique. Only text
 strings go to the model; the client restores IDs/timestamps from the source snapshot.
 Old/cancelled job messages cannot write into a newer request. Empty instrumental
-markers retain empty output. Missing, duplicate or truncated results fail visibly.
+markers retain empty output. Missing, duplicate or malformed worker results fail visibly. Since v0.7.1,
+limited phrase recovery handles decoder repetition; an unresolved lyric returns
+empty generated text with an explicit `error`, allowing later lines to continue.
+Never save such a result as a fully converted song. [Recovery details](g2p-recovery.md).
 
 The adapter accepts arbitrary positive LRCLIB IDs, validates the returned identity,
 and handles plain lyrics or a timed-only record. It prefers plain lyrics for this
