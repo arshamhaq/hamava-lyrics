@@ -7,21 +7,29 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current fix: decoder repetition recovery (v0.7.1)
+## Current fix: complete lyric rows and compact saved songs (v0.7.2)
 
-Some lyrics made Negara repeat sounds until its output limit, which previously
-stopped the entire song. Retry repeated the same failure. The worker now retries
-those lines as smaller phrases while keeping the original lyric rows intact.
-Unrecoverable lines stay visibly marked in Persian while later lines continue.
-Incomplete output is never shown as valid Finglish or saved as a complete song.
+Short, repeated vocal sounds can make Negara loop too; line length is not the
+cause. Recovery first retries smaller phrases, then spells only unresolved
+fragments in Latin letters. Successful model phrases remain intact. Such rows
+are visibly marked **Approximate**, show original Persian, and support copying
+in both readers. Saved songs retain that label. This prevents decoder-limit
+failures from leaving rows unconverted; it does not guarantee pronunciation or
+hide real download/runtime failures. [Details and limits](docs/g2p-recovery.md).
 
-The reported Khanoom Vaziri and Asheghan lines reproduced the decoder loop and
-now complete with bounded recovery. Real full-song checks converted 107/108 lines
-of Khanoom Vaziri (one kept in Persian) and 48/48 of Asheghan on desktop/mobile
-emulation. The same CPU model/cache is retained.
-[Cause, recovery limits and regression checks](docs/g2p-recovery.md).
+Real CPU checks now produce text for all 108 Khanoom Vaziri rows, all 48 Asheghan
+rows and the short repeated vocal line supplied by the owner. The pinned model
+and cached weights are unchanged; the homepage demo is untouched.
 
-Deploy with `npm run deploy:token` and accept Reload app; confirm **v0.7.1**.
+Saved songs show four initially, with a three-dot **Show all / Show less** button
+for longer lists. Each has a separate remove button that deletes its saved record
+from this device. The redundant title-and-artist lookup form is removed.
+
+Verified: 33 unit tests, production typecheck/build and 40 relevant browser checks
+across desktop and mobile emulation, including real CPU conversion, saved-song
+removal/persistence, approximation labels/copy, and the preserved demo reader.
+
+Deploy with `npm run deploy:token`, accept Reload app, and confirm **v0.7.2**.
 
 ## Previous milestone: song search and unsynced reader (v0.7.0)
 
