@@ -1,4 +1,26 @@
-# Decoder repetition recovery — v0.7.2
+# Decoder repetition recovery — v0.7.3
+
+## Finished loops (v0.7.3)
+
+Khanoom Vaziri line 83 produced 163 words in 498 tokens with EOS. It was neither
+truncated nor routed through recovery; the retry-only expansion heuristic never
+saw it. This explains the long invented sequence of `ey` despite three vocal
+sounds in the source.
+
+A separate conservative guard applies to completed output at every recovery
+depth: repeating 1–3-word runs, at least 12 repetitions, occupying more than 24
+words and more than twice the source word count. It rejects the candidate and
+uses the existing split/recovery/fallback path. It does not trim output, change
+normal decoding, lower recovery limits, or suppress repetitions from the source.
+The broad word-count heuristic stays limited to retry fragments to avoid its
+previous false positives on ordinary whole lines.
+
+The repaired real-model output is short again, ending `e e eye e`. This still
+is not an exact rendering of three written vocal sounds: the guard catches the
+extreme loop, not every small pronunciation or repetition error.
+
+Old saved song records remain unchanged. Remove/reselect an affected saved song
+after reloading v0.7.3. No weight redownload is required.
 
 ## Completion fallback (v0.7.2)
 

@@ -7,7 +7,25 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current fix: complete lyric rows and compact saved songs (v0.7.2)
+## Current fix: finished repetition loops (v0.7.3)
+
+A Khanoom Vaziri line emitted 163 words and still ended normally at 498 output
+tokens, below the 512-token ceiling. A conservative repeated-run check now sends
+such output through the existing bounded phrase recovery and spelling fallback.
+It detects runs of 1–3 words repeated at least 12 times whose span exceeds both
+24 words and twice the source word count. Ordinary source repetitions remain;
+this is a safeguard for extreme loops, not an accuracy guarantee.
+
+Deploy with `npm run deploy:token`, reload, and confirm **v0.7.3**. Previously
+saved conversions are retained: remove the old Khanoom Vaziri entry using its
+trash button, then search/select it again to regenerate the lyrics. Model weights
+remain cached.
+
+Verified: 35 unit tests, production typecheck/build, and 10 real-model browser
+checks on desktop/mobile emulation. Khanoom Vaziri (108 rows), Asheghan (48),
+Del Bordi (33), and the previous Baghale To example still complete.
+
+## Previous fix: complete lyric rows and compact saved songs (v0.7.2)
 
 Short, repeated vocal sounds can make Negara loop too; line length is not the
 cause. Recovery first retries smaller phrases, then spells only unresolved
