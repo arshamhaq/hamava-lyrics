@@ -36,6 +36,7 @@ const aliases: [RegExp, string][] = [
   [/دل\s*بردی|delbordi/g, 'del bordi'],
   [/غریب\s*[اآ]شنا/g, 'gharibe ashena'],
   [/گوگوش/g, 'googoosh'],
+  [/کوه/g, 'kooh'],
   [/محمد\s*رضا\s*شجریان|محمدرضا\s*شجریان|شجریان/g, 'shajarian'],
   [/همایون/g, 'homayoun'],
   [/شادمهر(?:\s*عقیلی)?/g, 'shadmehr aghili'],
@@ -88,7 +89,19 @@ export function matchScore(hit: SongHit, input: string) {
   return Math.max(
     ...variants.map((q) => {
       const tokens = q.split(' ')
-      const matched = tokens.filter((t) => fields.some((w) => close(t, w))).length
+      // Accept a partial trailing artist only when a separate query word anchors
+      // the title. Do not broadly relax short title matching (e.g. Del/Delas).
+      const titleWords = title.split(' ')
+      const artistWords = normalizeQuery(hit.artist).split(' ')
+      const anchored = tokens.slice(0, -1).some((t) => titleWords.some((w) => close(t, w)))
+      const matched = tokens.filter(
+        (t, index) =>
+          fields.some((w) => close(t, w)) ||
+          (anchored &&
+            index === tokens.length - 1 &&
+            t.length >= 3 &&
+            artistWords.some((w) => fold(w).startsWith(fold(t)))),
+      ).length
       if (matched / tokens.length < 0.75) return 0
       return (
         (matched / tokens.length) * 10 +

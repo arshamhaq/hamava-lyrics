@@ -140,3 +140,50 @@ it('does not pass English-only fallback text into the Persian converter', async 
   )
   expect(response.status).toBe(404)
 })
+
+it('matches anchored partial artist names without broadening unrelated title prefixes', () => {
+  const songs = [
+    hit('1', 'Kooh', 'Googoosh'),
+    hit('2', 'Kooh', 'Other Singer'),
+    hit('3', 'Different', 'Googoosh'),
+  ]
+  expect(rankSongs(songs, 'kooh goo').map((s) => s.id)).toEqual(['1'])
+  expect(rankSongs(songs, 'kooh googoosh').map((s) => s.id)).toEqual(['1'])
+  expect(rankSongs(songs, 'کوه گوگوش').map((s) => s.id)).toEqual(['1'])
+  expect(rankSongs(songs, 'kooh go')).toEqual([])
+  expect(queryVariants('kooh goo')).toContain('kooh')
+})
+it('retrieves partial artist matches through bounded title fallback', async () => {
+  vi.resetModules()
+  const { searchSongs } = await import('../worker/search')
+  const requests: string[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      requests.push(url)
+      return Response.json(
+        new URL(url).searchParams.get('q') === 'kooh'
+          ? [{ id: 1, trackName: 'Kooh', artistName: 'Googoosh', plainLyrics: 'سلام' }]
+          : [],
+      )
+    }),
+  )
+  const result = await searchSongs('kooh goo', new AbortController().signal)
+  expect(result.songs.map((s) => s.title)).toEqual(['Kooh'])
+  expect(requests).toHaveLength(2)
+})
+it('stops retrying unreachable LRCLIB and returns a visible notice without caching the outage', async () => {
+  vi.resetModules()
+  const { searchApi } = await import('../worker/search')
+  const remote = vi.fn(async () => {
+    throw new TypeError('Network unavailable')
+  })
+  vi.stubGlobal('fetch', remote)
+  const request = new Request('https://app.test/api/search?q=kooh%20goo')
+  const first = await (await searchApi(request)).json()
+  expect(first.songs).toEqual([])
+  expect(first.notice).toContain('unavailable')
+  expect(remote).toHaveBeenCalledTimes(2) // one LRCLIB and one alternate, no keyword retry loop
+  await searchApi(request)
+  expect(remote).toHaveBeenCalledTimes(4)
+})

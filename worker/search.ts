@@ -141,8 +141,9 @@ export async function searchSongs(query: string, signal: AbortSignal): Promise<S
     } catch (error) {
       if (signal.aborted || (error instanceof ProviderError && error.status === 429)) throw error
       notice = 'LRCLIB could not be reached. Showing alternate matches if available.'
-      // A transient failure can use the next bounded variant; 429 never retries.
-      continue
+      // Different keywords cannot repair a failed connection. Try the alternate
+      // provider once, rather than spending the deadline retrying LRCLIB.
+      break
     }
   }
   let songs = rankSongs(hits, query)
