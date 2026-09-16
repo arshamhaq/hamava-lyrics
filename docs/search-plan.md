@@ -1,4 +1,4 @@
-# Search and unsynced reading — v0.7.2
+# Search and unsynced reading — v0.7.4
 
 Implemented at `/search`. The homepage's Search a song button opens this route.
 Spotify remains a placeholder. The Googoosh audio demo is unchanged.
@@ -7,6 +7,9 @@ Spotify remains a placeholder. The Googoosh audio demo is unchanged.
 
 - Debounce 400 ms after at least two characters. Up to 12 suggestions show song,
   artist, album/version, duration if known, provider and lyric availability.
+- The example button searches Kooh by Googoosh. Slow searches (five seconds),
+  failures and provider notices show a small connection/VPN hint outside the
+  dropdown. Retry is available for both errors and provider notices.
 - Accessible combobox: arrows, Enter, Escape, click/touch, stale-request
   cancellation, loading/error/empty feedback and retry. Query is remembered for
   the browser session. Different recordings remain distinct by provider ID.
@@ -36,7 +39,9 @@ Ashena. Tasnim/tasnif/tasnife labels are optional in the broadened query.
 
 Candidates are ranked against the full original/aliased query, not the broad
 fallback token. Matching tolerates small spelling variations and avoids unrelated
-prefix matches. This is not universal Persian-to-Latin query translation or a
+prefix matches. A trailing artist prefix of at least three characters is accepted
+when a different query token matches the title; `kooh goo` can match Googoosh,
+while unrelated title prefixes are still rejected. This is not universal Persian-to-Latin query translation or a
 complete fuzzy index. Broad queries are limited by the upstream result cap.
 
 `worker/search.ts` handles `/api/search` and `/api/lyrics`. The same handler runs
@@ -48,6 +53,8 @@ Requests have a 22-second overall deadline, 8-second upstream timeout, 2 MB
 upstream response limit, bounded input and result counts, and fixed upstream
 hosts. LRCLIB calls are sequential per isolate with 250 ms spacing. Upstream
 429/Retry-After is honored with a host cooldown; no fallback storm follows it.
+A failed LRCLIB connection stops keyword retries and attempts the alternate
+provider once; an empty successful response still permits broadened searches.
 A bounded five-minute in-memory cache holds successful results. It is per isolate,
 not a global quota or persistent cache. The browser also reuses recent successful
 queries during the current page session. No inference happens while typing.

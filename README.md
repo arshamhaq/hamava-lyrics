@@ -7,7 +7,31 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current fix: finished repetition loops (v0.7.3)
+## Current update: partial artist search and connection feedback (v0.7.4)
+
+Search now accepts a trailing artist prefix of at least three characters when a
+separate title word matches: `kooh goo` finds Kooh by Googoosh. Existing title,
+alias and spelling behavior remains covered by the Del Bordi regression tests.
+The example button now searches **Kooh by Googoosh**.
+
+A small connection/VPN hint appears after five seconds of searching or when a
+search fails/returns a provider notice. Failed LRCLIB connections no longer
+retry alternative keywords; the alternate provider is tried once. Successful
+empty LRCLIB searches still broaden normally, 429 still respects Retry-After,
+and outage results are not cached. Retry is also available for provider notices.
+
+The reported Man Hamoonam line was checked with the real pinned CPU model:
+`ba doost dashtane to doost dashtani tar mishe zaminam`. The source contains both
+“loving you” and “more lovable”; no erroneous extra phrase was reproduced.
+Decoder and fallback logic are unchanged in this release.
+
+Live LRCLIB candidates ranked successfully for both `kooh goo` (including Kooh,
+ID 9700712) and `del bordi` (including Tasnife Del Bordi, ID 13708175).
+Verified: 38 unit tests, production typecheck/build, 22 search browser checks
+on desktop/mobile emulation, the real CPU line probe and live LRCLIB lookups.
+Deploy with `npm run deploy:token`, reload, and confirm **v0.7.4**.
+
+## Previous fix: finished repetition loops (v0.7.3)
 
 A Khanoom Vaziri line emitted 163 words and still ended normally at 498 output
 tokens, below the 512-token ceiling. A conservative repeated-run check now sends
