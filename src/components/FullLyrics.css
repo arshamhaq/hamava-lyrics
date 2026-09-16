@@ -212,3 +212,12 @@ dialog.full-lyrics[open] {
     padding-inline: 10px;
   }
 }
+
+.lyric-conversion-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font:
+    13px/1.5 Manrope,
+    sans-serif;
+}

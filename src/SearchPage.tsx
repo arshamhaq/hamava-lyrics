@@ -120,7 +120,9 @@ export default function SearchPage() {
       onLine: (line, index) => {
         if (!controller.signal.aborted)
           setRows((current) =>
-            current.map((row, i) => (i === index ? { ...row, finglish: line.finglish } : row)),
+            current.map((row, i) =>
+              i === index ? { ...row, finglish: line.finglish, error: line.error } : row,
+            ),
           )
       },
       onEvent: (event) => {
@@ -137,9 +139,21 @@ export default function SearchPage() {
     const entry = {
       key,
       song: source,
-      lines: result.lines.map(({ id, persian, finglish }) => ({ id, persian, finglish })),
+      lines: result.lines.map(({ id, persian, finglish, error }) => ({
+        id,
+        persian,
+        finglish,
+        error,
+      })),
     }
     setRows(entry.lines)
+    const failed = result.lines.filter((line) => line.error).length
+    if (failed) {
+      setStatus(
+        `Finished reading the song · ${failed} ${failed === 1 ? 'line remains' : 'lines remain'} in Persian. All other lines are ready to copy.`,
+      )
+      return // Never save an incomplete song as a finished offline conversion.
+    }
     const stored = saveSong(entry)
     setSaved(savedSongs())
     setStatus(
@@ -238,7 +252,7 @@ export default function SearchPage() {
       duration: null,
       hasLyrics: false,
     })
-  const waiting = rows.filter((r) => !r.finglish).length
+  const waiting = rows.filter((r) => !r.finglish && !r.error).length
   return (
     <div className="app search-app">
       <a className="skip-link" href="#search-title">

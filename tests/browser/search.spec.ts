@@ -167,3 +167,36 @@ test('late results cannot replace a newer query and Escape closes suggestions', 
   await input.press('Escape')
   await expect(page.getByRole('option')).toHaveCount(0)
 })
+
+test('one failed lyric stays Persian while subsequent lines finish and partial songs are not saved', async ({
+  page,
+  context,
+}) => {
+  await context.route('**/g2p-worker.js*', (r) =>
+    r.fulfill({
+      contentType: 'text/javascript',
+      body: `onmessage=({data:d})=>{
+    if(d.type!=='run')return;
+    postMessage({type:'line-error',jobId:d.jobId,index:0,raw:'',finglish:'',truncated:false,error:'Could not convert this line.'});
+    postMessage({type:'line',jobId:d.jobId,index:1,raw:'xodAhAfez',finglish:'khodahafez',truncated:false});
+    postMessage({type:'done',jobId:d.jobId,failedLines:1});
+  }`,
+    }),
+  )
+  await page.goto('/search')
+  await page.getByRole('combobox').fill('del bordi')
+  await page.getByRole('option').click()
+  await expect(page.locator('.reading-status')).toContainText('1 line remains in Persian')
+  await expect(page.locator('.song-reader-lines .full-lyric')).toHaveCount(2)
+  await expect(page.locator('.song-reader-lines .full-lyric').first()).toContainText('سلام')
+  await expect(page.locator('.song-reader-lines .full-lyric').last()).toContainText('khodahafez')
+  await expect(page.getByRole('button', { name: 'Copy line 1', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Copy line 2', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Open full lyrics' }).click()
+  await expect(page.getByRole('dialog').locator('.lyric-conversion-error')).toContainText(
+    'original kept',
+  )
+  expect(
+    await page.evaluate(() => localStorage.getItem('hamava-songs-negara-5720b2c4-format1')),
+  ).toBeNull()
+})

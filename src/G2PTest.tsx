@@ -130,7 +130,12 @@ export default function G2PTest() {
       })
       if (runController.current !== controller) return
       setStats(converted.stats)
-      setStatus('Finished. These are Negara’s outputs, without pronunciation corrections.')
+      const failed = converted.lines.filter((line) => line.error).length
+      setStatus(
+        failed
+          ? `Finished. ${failed} lines could not be converted; their Persian originals are kept.`
+          : 'Finished. These are Negara’s outputs, without pronunciation corrections.',
+      )
     } catch (e) {
       if (runController.current !== controller) return
       if ((e as Error).name !== 'AbortError') {
@@ -292,7 +297,7 @@ export default function G2PTest() {
               <li key={line.id} className={result ? 'g2p-line ready' : 'g2p-line'}>
                 <div className="g2p-line-top">
                   <span>LINE {String(index + 1).padStart(2, '0')}</span>
-                  {result && (
+                  {result?.finglish && (
                     <button
                       className="g2p-copy"
                       aria-label={`Copy line ${index + 1}`}
@@ -307,12 +312,14 @@ export default function G2PTest() {
                   {persian}
                 </p>
                 <p className="g2p-finglish" dir="ltr">
-                  {result ? result.finglish : busy ? 'Waiting for this line…' : 'Not generated'}
+                  {result?.error ||
+                    (result ? result.finglish : busy ? 'Waiting for this line…' : 'Not generated')}
                 </p>
                 {result && (
                   <>
                     <div className="g2p-small">
                       {result.cached ? 'Reused from this session' : `${Math.round(result.ms)} ms`}
+                      {result.recovered && <span> · Read in smaller phrases</span>}
                       {result.truncated && (
                         <strong className="g2p-error"> · INCOMPLETE: output limit reached</strong>
                       )}

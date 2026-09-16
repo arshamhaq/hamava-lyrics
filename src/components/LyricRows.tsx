@@ -4,6 +4,7 @@ export interface ReadingLine {
   id: string
   persian: string
   finglish: string
+  error?: string
 }
 interface Props {
   lines: readonly ReadingLine[]
@@ -67,6 +68,11 @@ export function LyricRows({
           >
             {line.finglish || line.persian}
           </span>
+          {line.error && (
+            <span className="lyric-conversion-error">
+              Finglish unavailable for this line · original kept
+            </span>
+          )}
           {persian && line.persian && line.finglish && (
             <span className="full-persian-line" lang="fa" dir="rtl">
               {line.persian}
@@ -82,7 +88,7 @@ export function LyricRows({
               ? copiedId === line.id
                 ? 'Copied!'
                 : 'Copy this line'
-              : 'Finglish is not ready yet'
+              : line.error || 'Finglish is not ready yet'
           }
           disabled={!line.finglish}
           data-copied={copiedId === line.id}
