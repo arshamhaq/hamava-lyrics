@@ -8,6 +8,8 @@ import {
   LoaderCircle,
   BookOpen,
   ExternalLink,
+  Ellipsis,
+  Trash2,
 } from 'lucide-react'
 import { Brand } from './components/Brand'
 import { ThemeToggle } from './components/ThemeToggle'
@@ -18,7 +20,14 @@ import { lyricsEngine } from './g2p/engine'
 import { lyricLines } from './g2p/text'
 import { formatTime } from './lib/timeline'
 import type { SongHit, SongText } from '../shared/search'
-import { load, search, savedSongs, saveSong, type SavedSong } from './search/client'
+import {
+  load,
+  search,
+  savedSongs,
+  saveSong,
+  removeSavedSong,
+  type SavedSong,
+} from './search/client'
 import './search/search.css'
 
 function lastQuery() {
@@ -51,8 +60,7 @@ export default function SearchPage() {
   const [saved, setSaved] = useState(savedSongs)
   const [paste, setPaste] = useState('')
   const [pasteTitle, setPasteTitle] = useState('')
-  const [lookupTitle, setLookupTitle] = useState('')
-  const [lookupArtist, setLookupArtist] = useState('')
+  const [showAllSaved, setShowAllSaved] = useState(false)
   const input = useRef<HTMLInputElement>(null)
   const selection = useRef<AbortController | null>(null)
   useEffect(() => {
@@ -251,16 +259,16 @@ export default function SearchPage() {
     setBusy(false)
     setStatus('Stopped. Completed lines are still here.')
   }
-  const lookup = () =>
-    choose({
-      provider: 'ovh',
-      id: `${lookupArtist}:${lookupTitle}`,
-      title: lookupTitle.trim(),
-      artist: lookupArtist.trim(),
-      album: '',
-      duration: null,
-      hasLyrics: false,
-    })
+  function removeSaved(key: string) {
+    if (!removeSavedSong(key)) {
+      setStatus('Could not remove that saved song. Please try again.')
+      return
+    }
+    const remaining = savedSongs()
+    setSaved(remaining)
+    if (remaining.length <= 4) setShowAllSaved(false)
+    setStatus('Saved song removed from this device.')
+  }
   const waiting = rows.filter((r) => !r.finglish && !r.error).length
   return (
     <div className="app search-app">
@@ -436,17 +444,37 @@ export default function SearchPage() {
           <section className="saved-songs" aria-label="Saved songs">
             <h2>On this device</h2>
             <div>
-              {saved.map((entry) => (
-                <button key={entry.key} onClick={() => showSaved(entry)}>
-                  <BookOpen size={17} />
-                  <span>
-                    <strong>{entry.song.title}</strong>
-                    <small>{entry.song.artist || 'Your lyrics'}</small>
-                  </span>
-                  <ArrowRight size={16} />
-                </button>
+              {(showAllSaved ? saved : saved.slice(0, 4)).map((entry) => (
+                <div className="saved-song" key={entry.key}>
+                  <button className="saved-song-open" onClick={() => showSaved(entry)}>
+                    <BookOpen size={17} />
+                    <span>
+                      <strong>{entry.song.title}</strong>
+                      <small>{entry.song.artist || 'Your lyrics'}</small>
+                    </span>
+                    <ArrowRight size={16} />
+                  </button>
+                  <button
+                    className="saved-song-remove"
+                    aria-label={`Remove ${entry.song.title} from this device`}
+                    title="Remove saved song"
+                    onClick={() => removeSaved(entry.key)}
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                </div>
               ))}
             </div>
+            {saved.length > 4 && (
+              <button
+                className="saved-show-all"
+                aria-expanded={showAllSaved}
+                onClick={() => setShowAllSaved((value) => !value)}
+              >
+                <Ellipsis size={21} />
+                {showAllSaved ? 'Show less' : `Show all (${saved.length})`}
+              </button>
+            )}
           </section>
         )}
         <div className="reading-status" role="status">
@@ -542,41 +570,6 @@ export default function SearchPage() {
           </section>
         )}
         <section className="search-fallbacks" aria-label="Other ways to find lyrics">
-          <details>
-            <summary>Can’t find it? Try title + artist</summary>
-            <p>
-              Try lyrics.ovh directly. Its Persian coverage is limited; a catalog match does not
-              guarantee lyrics.
-            </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                void lookup()
-              }}
-            >
-              <label>
-                Song title
-                <input
-                  required
-                  maxLength={200}
-                  value={lookupTitle}
-                  onChange={(e) => setLookupTitle(e.target.value)}
-                />
-              </label>
-              <label>
-                Artist
-                <input
-                  required
-                  maxLength={200}
-                  value={lookupArtist}
-                  onChange={(e) => setLookupArtist(e.target.value)}
-                />
-              </label>
-              <button className="primary-button" type="submit">
-                Find lyrics <ArrowRight size={16} />
-              </button>
-            </form>
-          </details>
           <details>
             <summary>Paste Persian lyrics</summary>
             <p>Found the words somewhere else? Read them here in Finglish.</p>

@@ -436,3 +436,40 @@
   flex-shrink: 0;
   align-self: flex-start;
 }
+
+.saved-song {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.saved-song .saved-song-open {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+.saved-song .saved-song-remove {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  margin-right: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.saved-song .saved-song-remove:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.saved-songs .saved-show-all {
+  margin: 14px auto 0;
+  min-height: 44px;
+  font-size: 14px;
+  padding: 8px 16px;
+}

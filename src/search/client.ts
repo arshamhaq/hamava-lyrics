@@ -78,3 +78,12 @@ export function saveSong(song: SavedSong): boolean {
     return false
   }
 }
+
+export function removeSavedSong(key: string): boolean {
+  try {
+    localStorage.setItem(STORAGE, JSON.stringify(savedSongs().filter((song) => song.key !== key)))
+    return true
+  } catch {
+    return false
+  }
+}

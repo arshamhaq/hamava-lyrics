@@ -1,4 +1,4 @@
-# Search and unsynced reading — v0.7.0
+# Search and unsynced reading — v0.7.2
 
 Implemented at `/search`. The homepage's Search a song button opens this route.
 Spotify remains a placeholder. The Googoosh audio demo is unchanged.
@@ -17,8 +17,12 @@ Spotify remains a placeholder. The Googoosh audio demo is unchanged.
   No player, timeline, highlighting, current-line copy or Follow button.
 - Up to ten completed songs are saved locally for offline reading, keyed by
   model/formatter version rather than app release. Closing the reader returns
-  to saved songs. A storage failure is reported instead of claiming a save.
-- Paste Persian text or use a title-and-artist lookup if search misses a song.
+  to saved songs. Show the first four initially; a three-dot Show all/Show less
+  button expands/collapses the list. Each saved song has a separate removal button
+  that deletes its persisted record without deleting the shared model cache.
+  A storage failure is reported instead of claiming a save.
+- Paste Persian text if search misses a song. The separate title-and-artist form
+  was removed in v0.7.2; selecting a suggestion still uses provider fallback.
   MusicFa and Genius links open external searches to find text to paste; these
   are not claimed to be API integrations.
 

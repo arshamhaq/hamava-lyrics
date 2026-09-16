@@ -100,14 +100,16 @@ test('completed songs reopen offline without fetching lyrics or creating a model
     return r.abort()
   })
   await context.setOffline(true)
-  await page.getByRole('button', { name: /Tasnife Del Bordi/ }).click()
+  await page.locator('.saved-song-open').filter({ hasText: 'Tasnife Del Bordi' }).click()
   await expect(page.locator('.song-reader-lines [lang="fa-Latn"]')).toHaveText([
     'salam',
     'khodahafez',
   ])
   expect(downloads).toBe(0)
   await page.getByRole('button', { name: 'Close lyrics', exact: true }).click()
-  await expect(page.getByRole('button', { name: /Tasnife Del Bordi/ })).toBeVisible()
+  await expect(
+    page.locator('.saved-song-open').filter({ hasText: 'Tasnife Del Bordi' }),
+  ).toBeVisible()
 })
 test('new selection cancels old conversion and never mixes song output', async ({ page }) => {
   await page.goto('/search')
@@ -199,4 +201,73 @@ test('one failed lyric stays Persian while subsequent lines finish and partial s
   expect(
     await page.evaluate(() => localStorage.getItem('hamava-songs-negara-5720b2c4-format1')),
   ).toBeNull()
+})
+
+test('saved songs collapse to four and individual removal persists without opening a reader', async ({
+  page,
+}, info) => {
+  await page.goto('/search')
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'hamava-songs-negara-5720b2c4-format1',
+      JSON.stringify(
+        Array.from({ length: 6 }, (_, i) => ({
+          key: String(i),
+          song: { title: `Saved ${i}`, artist: 'Singer', text: 'سلام', source: 'Pasted' },
+          lines: [{ id: '1', persian: 'سلام', finglish: 'salam' }],
+        })),
+      ),
+    ),
+  )
+  await page.reload()
+  await expect(page.getByText(/Try title.*artist/)).toHaveCount(0)
+  await expect(page.locator('.saved-song-open')).toHaveCount(4)
+  await page.getByRole('button', { name: 'Show all (6)' }).click()
+  await expect(page.locator('.saved-song-open')).toHaveCount(6)
+  await page.getByRole('button', { name: 'Remove Saved 5 from this device', exact: true }).click()
+  await expect(page.locator('.saved-song-open')).toHaveCount(5)
+  await expect(page.locator('.song-reader')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Show less' }).click()
+  await expect(page.locator('.saved-song-open')).toHaveCount(4)
+  await page.getByRole('button', { name: 'Remove Saved 0 from this device', exact: true }).click()
+  await expect(page.locator('.saved-song-open')).toHaveCount(4)
+  await expect(page.getByRole('button', { name: /Show all/ })).toHaveCount(0)
+  await page.reload()
+  await expect(page.locator('.saved-song-open')).toHaveCount(4)
+  await expect(page.locator('.saved-songs')).not.toContainText('Saved 0')
+  await expect(page.locator('.saved-songs')).not.toContainText('Saved 5')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({
+    path: `test-results/saved-songs-${info.project.name}.png`,
+    fullPage: true,
+  })
+})
+test('approximate rows are labeled, copyable and preserved when reopened from device storage', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await context.route('**/g2p-worker.js*', (r) =>
+    r.fulfill({
+      contentType: 'text/javascript',
+      body: `onmessage=({data:d})=>{
+    if(d.type!=='run')return;
+    d.lines.forEach((text,index)=>postMessage({type:'line',jobId:d.jobId,index,raw:'',finglish:'sl am',approximate:true,truncated:false}));
+    postMessage({type:'done',jobId:d.jobId,approximateLines:d.lines.length});
+  }`,
+    }),
+  )
+  await page.goto('/search')
+  await page.getByRole('combobox').fill('del bordi')
+  await page.getByRole('option').click()
+  await expect(page.locator('.reading-status')).toContainText('2 approximate lines')
+  await expect(page.locator('.song-reader-lines .lyric-approximate')).toHaveCount(2)
+  await expect(page.locator('.song-reader-lines .full-persian-line')).toHaveCount(2)
+  await page.getByRole('button', { name: 'Copy line 1', exact: true }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('sl am')
+  await page.getByRole('button', { name: 'Open full lyrics' }).click()
+  await expect(page.getByRole('dialog').locator('.lyric-approximate')).toHaveCount(2)
+  await page.reload()
+  await page.locator('.saved-song-open').click()
+  await expect(page.locator('.song-reader-lines .lyric-approximate')).toHaveCount(2)
 })
