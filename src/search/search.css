@@ -473,3 +473,16 @@
   font-size: 14px;
   padding: 8px 16px;
 }
+
+.search-connection {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.search-connection svg {
+  flex-shrink: 0;
+}

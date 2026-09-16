@@ -271,3 +271,55 @@ test('approximate rows are labeled, copyable and preserved when reopened from de
   await page.locator('.saved-song-open').click()
   await expect(page.locator('.song-reader-lines .lyric-approximate')).toHaveCount(2)
 })
+
+test('Kooh example starts a Googoosh search', async ({ page }) => {
+  await page.goto('/search')
+  await page.getByRole('button', { name: 'Kooh by Googoosh' }).click()
+  await expect(page.getByRole('combobox')).toHaveValue('kooh googoosh')
+  await expect(page.getByRole('button', { name: 'del bordi', exact: true })).toHaveCount(0)
+})
+test('provider outage shows a persistent connection hint and allows a successful retry', async ({
+  page,
+  context,
+}) => {
+  let calls = 0
+  await context.route('**/api/search?*', (r) =>
+    r.fulfill({
+      json:
+        ++calls === 1
+          ? {
+              songs: [],
+              notice: 'LRCLIB could not be reached. Showing alternate matches if available.',
+            }
+          : { songs: [first] },
+    }),
+  )
+  await page.goto('/search')
+  await page.getByRole('combobox').fill('connection test')
+  await expect(page.locator('.search-connection')).toContainText('connection or VPN')
+  await expect(page.getByText('Searching songs…', { exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Retry search' }).click()
+  await expect(page.getByRole('option')).toBeVisible()
+  await expect(page.locator('.search-connection')).toHaveCount(0)
+  expect(calls).toBe(2)
+})
+test('slow search gives feedback and clearing the query removes it without stale results', async ({
+  page,
+  context,
+}) => {
+  let release: () => void = () => {}
+  const pending = new Promise<void>((r) => {
+    release = r
+  })
+  await context.route('**/api/search?*', async (r) => {
+    await pending
+    await r.fulfill({ json: { songs: [first] } }).catch(() => {})
+  })
+  await page.goto('/search')
+  await page.getByRole('combobox').fill('slow connection')
+  await expect(page.locator('.search-connection')).toContainText('taking longer', { timeout: 8000 })
+  await page.getByRole('button', { name: 'Clear search' }).click()
+  release()
+  await expect(page.locator('.search-connection')).toHaveCount(0)
+  await expect(page.getByRole('option')).toHaveCount(0)
+})

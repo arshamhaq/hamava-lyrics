@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Ellipsis,
   Trash2,
+  WifiOff,
 } from 'lucide-react'
 import { Brand } from './components/Brand'
 import { ThemeToggle } from './components/ThemeToggle'
@@ -43,6 +44,7 @@ export default function SearchPage() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const [searching, setSearching] = useState(false)
+  const [slowSearch, setSlowSearch] = useState(false)
   const [searched, setSearched] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [notice, setNotice] = useState('')
@@ -65,6 +67,7 @@ export default function SearchPage() {
   const selection = useRef<AbortController | null>(null)
   useEffect(() => {
     const controller = new AbortController()
+    setSlowSearch(false)
     setHits([])
     setActive(-1)
     setSearchError('')
@@ -78,6 +81,7 @@ export default function SearchPage() {
       return
     }
     setSearching(true)
+    const slowTimer = setTimeout(() => setSlowSearch(true), 5000)
     const timer = setTimeout(async () => {
       try {
         if (!navigator.onLine)
@@ -91,11 +95,16 @@ export default function SearchPage() {
         if (!controller.signal.aborted)
           setSearchError(e instanceof Error ? e.message : 'Search failed. Please retry.')
       } finally {
-        if (!controller.signal.aborted) setSearching(false)
+        clearTimeout(slowTimer)
+        if (!controller.signal.aborted) {
+          setSearching(false)
+          setSlowSearch(false)
+        }
       }
     }, 400)
     return () => {
       clearTimeout(timer)
+      clearTimeout(slowTimer)
       controller.abort()
     }
   }, [query, retrySearch])
@@ -400,7 +409,7 @@ export default function SearchPage() {
                   </div>
                 ))}
               </div>
-              {searchError && (
+              {(searchError || notice) && (
                 <button className="search-retry" onClick={() => setRetrySearch((v) => v + 1)}>
                   Retry search
                 </button>
@@ -427,16 +436,26 @@ export default function SearchPage() {
             </div>
           )}
         </div>
+        {(slowSearch || searchError || notice) && (
+          <div className="search-connection" role="status">
+            <WifiOff size={17} aria-hidden="true" />
+            <span>
+              {slowSearch
+                ? 'Search is taking longer than usual. Check your connection or VPN.'
+                : 'Lyrics search may be unavailable. Check your connection or VPN, then retry.'}
+            </span>
+          </div>
+        )}
         <p className="search-hint">
           A few words are enough. Try{' '}
           <button
             onClick={() => {
-              setQuery('del bordi')
+              setQuery('kooh googoosh')
               setOpen(true)
               input.current?.focus()
             }}
           >
-            del bordi
+            Kooh by Googoosh
           </button>{' '}
           or the artist’s name.
         </p>
