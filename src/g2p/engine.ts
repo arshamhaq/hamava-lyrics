@@ -11,6 +11,8 @@ export interface LineOutput {
   cached: boolean
   tokens: number
   truncated: false
+  error?: string
+  recovered?: boolean
 }
 export interface ConversionStats {
   backend: 'wasm'
@@ -20,6 +22,8 @@ export interface ConversionStats {
   elapsedMs: number
   uniqueLines: number
   generatedLines: number
+  failedLines?: number
+  recoveredLines?: number
 }
 export type EngineEvent = {
   type: 'status' | 'notice' | 'ready'
@@ -178,7 +182,8 @@ export class LyricsEngine {
       return
     }
     if (job.settled) return // Ignore any result arriving after consumer cancellation.
-    if (data.type === 'line') {
+    if (data.type === 'line' || data.type === 'line-error') {
+      const failed = data.type === 'line-error'
       const i = data.index
       if (
         !Number.isInteger(i) ||
@@ -188,7 +193,9 @@ export class LyricsEngine {
         data.truncated ||
         typeof data.raw !== 'string' ||
         typeof data.finglish !== 'string' ||
-        (job.input[i].persian.trim() && !data.finglish.trim())
+        (failed
+          ? typeof data.error !== 'string' || !data.error || data.finglish !== '' || data.raw !== ''
+          : job.input[i].persian.trim() && !data.finglish.trim())
       ) {
         this.fail(new Error('Invalid or incomplete lyric result.'))
         return
@@ -202,6 +209,8 @@ export class LyricsEngine {
         cached: data.cached === true,
         tokens: Number(data.tokens) || 0,
         truncated: false as const,
+        ...(failed ? { error: data.error as string } : {}),
+        recovered: data.recovered === true,
       }
       job.output[i] = result
       job.onLine?.(result, i)

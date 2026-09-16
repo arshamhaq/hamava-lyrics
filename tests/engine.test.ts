@@ -95,3 +95,36 @@ it('rejects invalid input before loading the model', async () => {
   await expect(engine.convert([{ id: 'a', persian: 'آ'.repeat(257) }])).rejects.toThrow('512')
   expect(factory).not.toHaveBeenCalled()
 })
+
+it('keeps explicit failed lines in place, continues later lyrics, and preserves the warm worker', async () => {
+  const w = new FakeWorker(),
+    engine = new LyricsEngine(() => w as unknown as Worker)
+  const callback = vi.fn()
+  const input = [
+    { id: 'first', persian: 'سلام', startMs: 12 },
+    { id: 'failed', persian: 'مشکل', startMs: 24 },
+    { id: 'last', persian: 'سلام', startMs: 36 },
+  ]
+  const result = engine.convert(input, { onLine: callback })
+  w.emit(line(1, 0))
+  w.emit({
+    ...line(1, 1),
+    type: 'line-error',
+    raw: '',
+    finglish: '',
+    error: 'Original Persian kept.',
+  })
+  w.emit({ ...line(1, 2), recovered: true })
+  w.emit({ ...done(1), failedLines: 1 })
+  const output = (await result).lines
+  expect(output.map((l) => l.id)).toEqual(['first', 'failed', 'last'])
+  expect(output[1]).toMatchObject({
+    persian: 'مشکل',
+    startMs: 24,
+    error: 'Original Persian kept.',
+    finglish: '',
+  })
+  expect(output[2]).toMatchObject({ finglish: 'salam', recovered: true })
+  expect(callback).toHaveBeenCalledTimes(3)
+  expect(w.terminate).not.toHaveBeenCalled()
+})

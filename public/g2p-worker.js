@@ -124,7 +124,7 @@ async function modelFile([name, hash, size]) {
   }
   return bytes
 }
-async function generate(encoder, decoder, text) {
+async function generate(encoder, decoder, text, limit = 512) {
   const input = new TextEncoder().encode(normalize(text))
   if (!input.length || input.length > 512) throw new Error('A line must contain 1–512 UTF-8 bytes.')
   const ids = new ort.Tensor(
@@ -146,7 +146,7 @@ async function generate(encoder, decoder, text) {
     for (const name of decoder.inputNames.filter((n) => n.startsWith('past_key_values.')))
       past[name] = new ort.Tensor('float32', new Float32Array(0), [1, 6, 0, 64])
     let token = 0
-    for (let step = 0; step < 512; step++) {
+    for (let step = 0; step < limit; step++) {
       if (step % 16 === 0) await yieldTask()
       checkCancelled()
       const nextId = new ort.Tensor('int64', BigInt64Array.of(BigInt(token)), [1, 1])
@@ -194,11 +194,90 @@ async function generate(encoder, decoder, text) {
         dispose(Object.values(output).filter((t) => !retained.has(t)))
       }
     }
-    const raw = new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(tokens))
+    // A truncated byte sequence may end mid-character. Never decode or publish it.
+    const raw = stopped
+      ? new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(tokens))
+      : ''
     return { raw, finglish: finglish(raw), truncated: !stopped, tokens: tokens.length }
   } finally {
     dispose([ids, mask, ...Object.values(encoded), ...Object.values(past)])
   }
+}
+
+// Retry only incomplete generation. Keep the caller's lyric row and IDs intact.
+function splitPhrase(text) {
+  const boundaries = [...text.matchAll(/\s+/g)].map((match) => ({
+    offset: match.index,
+    end: match.index + match[0].length,
+    punctuation: /[،,؛;:!؟?。.…)\]]$/.test(text.slice(0, match.index)),
+  }))
+  if (!boundaries.length) return null
+  const middle = text.length / 2
+  const candidates = boundaries.filter(
+    (b) => b.punctuation && b.offset >= text.length / 4 && b.end <= (text.length * 3) / 4,
+  )
+  const best = (candidates.length ? candidates : boundaries).sort(
+    (a, b) => Math.abs(a.offset - middle) - Math.abs(b.offset - middle),
+  )[0]
+  return [text.slice(0, best.offset).trim(), text.slice(best.end).trim()]
+}
+function expandedOutput(input, output) {
+  const words = (text) => text.split(/\s+/).filter((word) => /\p{L}/u.test(word)).length
+  const letters = (text) => (text.match(/\p{L}/gu) || []).length
+  return (
+    words(output) > words(input) + Math.max(1, Math.floor(words(input) / 4)) ||
+    letters(output) > Math.max(12, letters(input) * 3)
+  )
+}
+async function recoverLine(text, infer = (part, limit) => generate(encoder, decoder, part, limit)) {
+  const budget = { attempts: 0, tokens: 0, split: false }
+  const phrases = new Map()
+  // Repeated words in this same failed line keep the same pronunciation.
+  // Ignore only surrounding punctuation, never words or internal spacing.
+  const phraseKey = (part) => part.replace(/^[\s،,؛;:!؟?.…()\[\]«»]+|[\s،,؛;:!؟?.…()\[\]«»]+$/g, '')
+  const run = async (part, depth) => {
+    checkCancelled()
+    const key = phraseKey(part)
+    if (phrases.has(key)) return phrases.get(key)
+    if (budget.attempts >= 15 || budget.tokens >= 2048) return null
+    budget.attempts++
+    const limit = depth === 0 ? 512 : Math.min(256, Math.max(48, part.length * 4))
+    const result = await infer(part, Math.min(limit, 2048 - budget.tokens))
+    budget.tokens += result.tokens
+    checkCancelled()
+    if (
+      !result.truncated &&
+      result.finglish.trim() &&
+      (depth === 0 || !expandedOutput(part, result.raw))
+    ) {
+      phrases.set(key, result)
+      return result
+    }
+    if (depth >= 4) return null
+    const parts = splitPhrase(part)
+    if (!parts || parts.some((p) => !p)) return null
+    budget.split = true
+    send('status', { message: 'Reading a difficult line in smaller phrases…', backend: 'wasm' })
+    const left = await run(parts[0], depth + 1)
+    if (!left) return null
+    const right = await run(parts[1], depth + 1)
+    if (!right) return null
+    return {
+      raw: `${left.raw.trim()} ${right.raw.trim()}`,
+      finglish: `${left.finglish.trim()} ${right.finglish.trim()}`,
+      truncated: false,
+    }
+  }
+  const result = await run(text, 0)
+  return result
+    ? { ...result, recovered: budget.split, tokens: budget.tokens }
+    : {
+        raw: '',
+        finglish: '',
+        truncated: false,
+        tokens: budget.tokens,
+        error: 'Could not convert this line after smaller-phrase retries. Original Persian kept.',
+      }
 }
 
 // Sessions and completed lines survive song changes until this document closes.
@@ -266,6 +345,9 @@ onmessage = async ({ data }) => {
     let inferenceMs = 0,
       generatedLines = 0
     const unique = new Set()
+    const failed = new Map() // Avoid retrying identical failures repeatedly within one song.
+    let failedLines = 0,
+      recoveredLines = 0
     for (let index = 0; index < data.lines.length; index++) {
       await yieldTask()
       checkCancelled()
@@ -280,14 +362,17 @@ onmessage = async ({ data }) => {
         ? { raw: '', finglish: '', tokens: 0, truncated: false }
         : cached
           ? completed.get(key)
-          : await generate(encoder, decoder, key)
+          : failed.get(key) || (await recoverLine(key))
       checkCancelled()
-      if (result.truncated)
-        throw new Error(
-          `Line ${index + 1} exceeded the output limit. Split it into shorter lines and retry.`,
-        )
       const ms = cached || !key ? 0 : performance.now() - begin
       inferenceMs += ms
+      if (result.error) {
+        failedLines++
+        failed.set(key, result)
+        send('line-error', { index, ...result, ms, cached: false, backend: 'wasm' })
+        continue
+      }
+      if (result.recovered) recoveredLines++
       if (key) {
         unique.add(key)
         if (!cached) {
@@ -299,6 +384,8 @@ onmessage = async ({ data }) => {
       send('line', { index, ...result, ms, cached, backend: 'wasm' })
     }
     send('done', {
+      failedLines,
+      recoveredLines,
       backend: 'wasm',
       warm,
       loadMs,

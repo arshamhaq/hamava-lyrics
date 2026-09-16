@@ -46,3 +46,75 @@ it('accepts different plain and timed sources without inventing timing', () => {
   expect(timed.lines[0]).toMatchObject({ startMs: 1000, endMs: 4000, persian: 'سلام' })
   expect(timed.lines[1].persian).toBe('')
 })
+
+function recoveryContext() {
+  const context = vm.createContext({
+    postMessage: () => {},
+    URL,
+    self: { location: { origin: 'https://app.test' } },
+    DOMException,
+  })
+  vm.runInContext(readFileSync('public/g2p-worker.js', 'utf8'), context)
+  return context
+}
+it('recovers an incomplete line by splitting without dropping repeated words or publishing the looping output', async () => {
+  const context = recoveryContext()
+  const calls: string[] = []
+  context.infer = async (text: string) => {
+    calls.push(text)
+    return text.split(' ').length > 2
+      ? { truncated: true, raw: 'LOOP', finglish: 'LOOP', tokens: 512 }
+      : { truncated: false, raw: text, finglish: text, tokens: 10 }
+  }
+  const result = await vm.runInContext("recoverLine('one one two two', infer)", context)
+  expect(result).toMatchObject({
+    raw: 'one one two two',
+    finglish: 'one one two two',
+    recovered: true,
+    truncated: false,
+  })
+  expect(calls).toEqual(['one one two two', 'one one', 'two two'])
+})
+it('bounds recovery attempts and marks an unsplittable failure without returning partial text', async () => {
+  const context = recoveryContext()
+  let tokens = 0
+  context.infer = async (_text: string, limit: number) => {
+    tokens += limit
+    return { truncated: true, raw: 'bad', finglish: 'bad', tokens: limit }
+  }
+  const result = await vm.runInContext(
+    "recoverLine('one two three four five six seven eight', infer)",
+    context,
+  )
+  expect(tokens).toBeLessThanOrEqual(2048)
+  expect(result).toMatchObject({ raw: '', finglish: '' })
+  expect(result.error).toContain('Original Persian kept')
+})
+it('recovery preserves cancellation and real runtime errors rather than hiding them as lyric failures', async () => {
+  const context = recoveryContext()
+  context.infer = async () => {
+    throw new Error('runtime crashed')
+  }
+  await expect(vm.runInContext("recoverLine('one two', infer)", context)).rejects.toThrow(
+    'runtime crashed',
+  )
+  vm.runInContext('activeJob = { cancelled: true }', context)
+  await expect(vm.runInContext("recoverLine('one two', infer)", context)).rejects.toMatchObject({
+    name: 'AbortError',
+  })
+})
+it('rejects completed but expanded phrases and reuses matching repeated phrases without erasing the repetition', async () => {
+  const context = recoveryContext()
+  const calls: string[] = []
+  context.infer = async (part: string) => {
+    calls.push(part)
+    if (part === 'one two, one two') return { truncated: true, raw: '', finglish: '', tokens: 512 }
+    if (part === 'one two,')
+      return { truncated: false, raw: 'one two', finglish: 'one two', tokens: 7 }
+    throw new Error('The same repeated phrase should be reused.')
+  }
+  const result = await vm.runInContext("recoverLine('one two, one two', infer)", context)
+  expect(result.finglish).toBe('one two one two')
+  expect(calls).toEqual(['one two, one two', 'one two,'])
+  expect(vm.runInContext("expandedOutput('one two', 'one two two two two')", context)).toBe(true)
+})
