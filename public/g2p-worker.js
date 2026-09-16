@@ -294,7 +294,7 @@ async function generate(encoder, decoder, text, limit = 512) {
   }
 }
 
-// Retry only incomplete generation. Keep the caller's lyric row and IDs intact.
+// Retry incomplete or clearly looping generation. Keep lyric rows and IDs intact.
 function splitPhrase(text) {
   const boundaries = [...text.matchAll(/\s+/g)].map((match) => ({
     offset: match.index,
@@ -319,6 +319,28 @@ function expandedOutput(input, output) {
     letters(output) > Math.max(12, letters(input) * 3)
   )
 }
+// A decoder can emit EOS after a long loop. Reject only conspicuous repeated
+// runs here, not ordinary word-count differences between Persian and Finglish.
+// Source length bounds preserve legitimate repeated refrains; nothing is trimmed.
+function excessiveRepetition(input, output) {
+  const words = (text) => text.toLowerCase().match(/[\p{L}\p{M}]+/gu) || []
+  const source = words(input),
+    generated = words(output)
+  const threshold = Math.max(24, source.length * 2)
+  for (let width = 1; width <= 3; width++) {
+    for (let start = 0; start < generated.length; start++) {
+      let end = start + width
+      while (
+        end < generated.length &&
+        generated[end] === generated[start + ((end - start) % width)]
+      )
+        end++
+      const repeats = Math.floor((end - start) / width)
+      if (repeats >= 12 && repeats * width > threshold) return true
+    }
+  }
+  return false
+}
 async function recoverLine(text, infer = (part, limit) => generate(encoder, decoder, part, limit)) {
   const budget = { attempts: 0, tokens: 0, split: false }
   const phrases = new Map()
@@ -338,6 +360,7 @@ async function recoverLine(text, infer = (part, limit) => generate(encoder, deco
     if (
       !result.truncated &&
       result.finglish.trim() &&
+      !excessiveRepetition(part, result.raw) &&
       (depth === 0 || !expandedOutput(part, result.raw))
     ) {
       phrases.set(key, result)

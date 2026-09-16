@@ -145,3 +145,30 @@ it('keeps a successful phrase when its neighboring fragment requires approximate
     truncated: false,
   })
 })
+
+it('rejects a finished decoder loop and uses existing phrase recovery instead of trimming repeats', async () => {
+  const context = recoveryContext()
+  const calls: string[] = []
+  context.infer = async (part: string) => {
+    calls.push(part)
+    const raw = part === 'hello, eh eh eh' ? 'hello ' + 'ey '.repeat(100) : part
+    return { raw, finglish: raw, truncated: false, tokens: 200 }
+  }
+  const result = await vm.runInContext("recoverLine('hello, eh eh eh', infer)", context)
+  expect(result.finglish).toBe('hello, eh eh eh')
+  expect(result.recovered).toBe(true)
+  expect(calls.length).toBeGreaterThan(1)
+})
+it('detects extreme single-word and phrase loops without rejecting genuine source repetition or normal expansion', () => {
+  const context = recoveryContext()
+  const check = (source: string, output: string) =>
+    vm.runInContext(
+      `excessiveRepetition(${JSON.stringify(source)}, ${JSON.stringify(output)})`,
+      context,
+    )
+  expect(check('عِه عِه عِه', 'ey '.repeat(100))).toBe(true)
+  expect(check('سلام', 'hey you '.repeat(30))).toBe(true)
+  expect(check('عِه عِه عِه', 'ey ey ey')).toBe(false)
+  expect(check('عِه '.repeat(40), 'ey '.repeat(40))).toBe(false)
+  expect(check('میخوام', 'mi kham')).toBe(false)
+})

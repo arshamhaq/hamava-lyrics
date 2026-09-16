@@ -64,6 +64,11 @@ for (const [id, target] of [
       body: JSON.stringify({ id, count, output }),
       contentType: 'application/json',
     })
+    if (id === '37630694') {
+      const repaired = await rows.nth(82).locator('[lang="fa-Latn"]').innerText()
+      expect(repaired.split(/\s+/).length).toBeLessThan(30)
+      console.log(info.project.name, 'previously looping row:', repaired)
+    }
     const failed = await rows.locator('.lyric-conversion-error').count()
     expect(failed).toBe(0)
     expect(await rows.locator('[lang="fa-Latn"]').count()).toBe(count)
