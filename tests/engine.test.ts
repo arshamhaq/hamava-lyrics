@@ -128,3 +128,20 @@ it('keeps explicit failed lines in place, continues later lyrics, and preserves 
   expect(callback).toHaveBeenCalledTimes(3)
   expect(w.terminate).not.toHaveBeenCalled()
 })
+
+it('preserves approximation metadata, source and timestamps in completed output', async () => {
+  const w = new FakeWorker(),
+    engine = new LyricsEngine(() => w as unknown as Worker)
+  const callback = vi.fn()
+  const result = engine.convert([{ id: 'a', persian: 'و و', startMs: 24 }], { onLine: callback })
+  w.emit({ ...line(1), raw: '', finglish: 'o o', approximate: true })
+  w.emit({ ...done(1), approximateLines: 1 })
+  expect((await result).lines[0]).toMatchObject({
+    id: 'a',
+    persian: 'و و',
+    startMs: 24,
+    approximate: true,
+    finglish: 'o o',
+  })
+  expect(callback.mock.calls[0][0].approximate).toBe(true)
+})

@@ -1,4 +1,36 @@
-# Decoder repetition recovery — v0.7.1
+# Decoder repetition recovery — v0.7.2
+
+## Completion fallback (v0.7.2)
+
+Short inputs can fail too: the user-supplied `بغل تو و و عطر تن تو و و`
+reproduced the loop, as did a stretched vocalization in Khanoom Vaziri (line 43).
+A larger output ceiling is not a solution to repeating greedy output.
+
+Recovery still first tries bounded smaller phrases. If a fragment cannot finish,
+only that fragment uses deterministic Persian-to-Latin spelling. Successful
+model phrases are retained. Source repetitions are preserved; isolated `و` becomes
+`o`, written vowel marks are retained for spelling, and digits become Latin digits.
+The converter does not publish truncated phonemes or invent a raw model trace.
+
+Rows containing any spelling fallback have `approximate: true` and a visible
+“Approximate · check the Persian” label with the original text. Copy works in both
+readers. Completed songs preserve the flag when saved/reopened offline. Test-reader
+JSON exports preserve the same metadata. Completion stats include `approximateLines`.
+Model revision and download caches remain unchanged.
+
+This ensures bounded text output for decoder-limit/empty-output failures, **not
+100% correct pronunciation**. Persian often omits short vowels; deterministic
+spelling cannot recover them. Download failures, unavailable runtimes, cancellation
+and resource exhaustion still fail visibly. Existing input limits still apply.
+The legacy per-line error protocol remains supported for older/explicit failures.
+
+Real CPU checks on desktop and mobile-emulated Chromium now complete all 108
+Khanoom Vaziri rows, all 48 Asheghan rows and the user's short repeated-vocal
+example. Del Bordi's 33 rows and existing raw-output parity checks still pass.
+These are completion checks, not pronunciation accuracy scores. Validation:
+33 unit tests, production typecheck/build and 40 relevant browser checks.
+
+## Historical v0.7.1 behavior
 
 The two reported failures were reproduced with the real pinned CPU model:
 LRCLIB 37630694 (Khanoom Vaziri), line 5, and 17152239 (Asheghan feat.

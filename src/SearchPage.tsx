@@ -121,7 +121,14 @@ export default function SearchPage() {
         if (!controller.signal.aborted)
           setRows((current) =>
             current.map((row, i) =>
-              i === index ? { ...row, finglish: line.finglish, error: line.error } : row,
+              i === index
+                ? {
+                    ...row,
+                    finglish: line.finglish,
+                    error: line.error,
+                    approximate: line.approximate,
+                  }
+                : row,
             ),
           )
       },
@@ -139,11 +146,12 @@ export default function SearchPage() {
     const entry = {
       key,
       song: source,
-      lines: result.lines.map(({ id, persian, finglish, error }) => ({
+      lines: result.lines.map(({ id, persian, finglish, error, approximate }) => ({
         id,
         persian,
         finglish,
         error,
+        approximate,
       })),
     }
     setRows(entry.lines)
@@ -154,11 +162,12 @@ export default function SearchPage() {
       )
       return // Never save an incomplete song as a finished offline conversion.
     }
+    const approximate = result.lines.filter((line) => line.approximate).length
     const stored = saveSong(entry)
     setSaved(savedSongs())
     setStatus(
       stored
-        ? 'Ready · saved on this device for offline reading.'
+        ? `Ready · saved on this device for offline reading.${approximate ? ` ${approximate} approximate ${approximate === 1 ? 'line' : 'lines'} marked below.` : ''}`
         : 'Ready · device storage is unavailable, so this song has not been saved.',
     )
   }

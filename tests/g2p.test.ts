@@ -75,7 +75,7 @@ it('recovers an incomplete line by splitting without dropping repeated words or 
   })
   expect(calls).toEqual(['one one two two', 'one one', 'two two'])
 })
-it('bounds recovery attempts and marks an unsplittable failure without returning partial text', async () => {
+it('bounds recovery attempts and returns marked spelling instead of incomplete model output', async () => {
   const context = recoveryContext()
   let tokens = 0
   context.infer = async (_text: string, limit: number) => {
@@ -87,8 +87,12 @@ it('bounds recovery attempts and marks an unsplittable failure without returning
     context,
   )
   expect(tokens).toBeLessThanOrEqual(2048)
-  expect(result).toMatchObject({ raw: '', finglish: '' })
-  expect(result.error).toContain('Original Persian kept')
+  expect(result).toMatchObject({
+    raw: '',
+    finglish: 'one two three four five six seven eight',
+    approximate: true,
+  })
+  expect(result.error).toBeUndefined()
 })
 it('recovery preserves cancellation and real runtime errors rather than hiding them as lyric failures', async () => {
   const context = recoveryContext()
@@ -117,4 +121,27 @@ it('rejects completed but expanded phrases and reuses matching repeated phrases 
   expect(result.finglish).toBe('one two one two')
   expect(calls).toEqual(['one two, one two', 'one two,'])
   expect(vm.runInContext("expandedOutput('one two', 'one two two two two')", context)).toBe(true)
+})
+
+it('spelling fallback preserves vocal repetitions, written vowels and digits', () => {
+  const context = recoveryContext()
+  const spell = (text: string) =>
+    vm.runInContext(`approximateSpelling(${JSON.stringify(text)})`, context)
+  expect(spell('و و و')).toBe('o o o')
+  expect(spell('بَـبو ۱۲٣')).toBe('baboo 123')
+  expect(spell('ك ي')).toBe('k y')
+})
+it('keeps a successful phrase when its neighboring fragment requires approximate spelling', async () => {
+  const context = recoveryContext()
+  context.infer = async (part: string) =>
+    part === 'بغل تو'
+      ? { truncated: false, raw: 'baqale to', finglish: 'baghale to', tokens: 10 }
+      : { truncated: true, raw: 'LOOP', finglish: 'LOOP', tokens: 48 }
+  const result = await vm.runInContext("recoverLine('بغل تو و و', infer)", context)
+  expect(result).toMatchObject({
+    raw: '',
+    finglish: 'baghale to o o',
+    approximate: true,
+    truncated: false,
+  })
 })

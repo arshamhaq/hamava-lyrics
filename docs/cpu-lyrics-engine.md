@@ -73,9 +73,12 @@ source metadata is retained. Input is snapshotted and IDs must be unique. Only t
 strings go to the model; the client restores IDs/timestamps from the source snapshot.
 Old/cancelled job messages cannot write into a newer request. Empty instrumental
 markers retain empty output. Missing, duplicate or malformed worker results fail visibly. Since v0.7.1,
-limited phrase recovery handles decoder repetition; an unresolved lyric returns
-empty generated text with an explicit `error`, allowing later lines to continue.
-Never save such a result as a fully converted song. [Recovery details](g2p-recovery.md).
+limited phrase recovery handles decoder repetition. Any fragment that still cannot
+finish uses deterministic spelling with `approximate: true`; completed model
+fragments stay intact. Both readers label those rows and retain original Persian.
+Saved songs and JSON exports preserve the approximation flag. Real runtime failures
+still fail visibly; legacy explicit `error` rows must not be saved as a completed
+song. [Recovery details](g2p-recovery.md).
 
 The adapter accepts arbitrary positive LRCLIB IDs, validates the returned identity,
 and handles plain lyrics or a timed-only record. It prefers plain lyrics for this

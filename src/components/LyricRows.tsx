@@ -5,6 +5,7 @@ export interface ReadingLine {
   persian: string
   finglish: string
   error?: string
+  approximate?: boolean
 }
 interface Props {
   lines: readonly ReadingLine[]
@@ -73,7 +74,10 @@ export function LyricRows({
               Finglish unavailable for this line · original kept
             </span>
           )}
-          {persian && line.persian && line.finglish && (
+          {line.approximate && (
+            <span className="lyric-approximate">Approximate · check the Persian</span>
+          )}
+          {(persian || line.approximate) && line.persian && line.finglish && (
             <span className="full-persian-line" lang="fa" dir="rtl">
               {line.persian}
             </span>

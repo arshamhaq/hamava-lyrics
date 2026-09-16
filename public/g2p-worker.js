@@ -22,14 +22,104 @@ const yieldTask = () => new Promise((resolve) => setTimeout(resolve, 0))
 const checkCancelled = () => {
   if (activeJob?.cancelled) throw new DOMException('Cancelled', 'AbortError')
 }
-const normalize = (text) =>
+const normalizeSource = (text) =>
   text
     .normalize('NFKC')
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
-    .replace(/[\u064b-\u0652\u0640]/g, '')
+    .replace(/ـ/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+const normalize = (text) => normalizeSource(text).replace(/[\u064b-\u0652]/g, '')
+// Last-resort spelling, not a claim of known pronunciation: Persian omits vowels.
+// Keep repeats and explicit vowel marks. Never invent a model phoneme trace.
+function approximateSpelling(text) {
+  const letters = {
+    ا: 'a',
+    آ: 'aa',
+    أ: 'a',
+    إ: 'e',
+    ٱ: 'a',
+    ب: 'b',
+    پ: 'p',
+    ت: 't',
+    ث: 's',
+    ج: 'j',
+    چ: 'ch',
+    ح: 'h',
+    خ: 'kh',
+    د: 'd',
+    ذ: 'z',
+    ر: 'r',
+    ز: 'z',
+    ژ: 'zh',
+    س: 's',
+    ش: 'sh',
+    ص: 's',
+    ض: 'z',
+    ط: 't',
+    ظ: 'z',
+    ع: "'",
+    غ: 'gh',
+    ف: 'f',
+    ق: 'gh',
+    ک: 'k',
+    گ: 'g',
+    ل: 'l',
+    م: 'm',
+    ن: 'n',
+    و: 'oo',
+    ه: 'h',
+    ی: 'y',
+    ء: "'",
+    ؤ: 'o',
+    ئ: 'y',
+    ة: 'e',
+    ۀ: 'e',
+    'َ': 'a',
+    'ِ': 'e',
+    'ُ': 'o',
+    'ً': 'an',
+    'ٍ': 'en',
+    'ٌ': 'on',
+    'ْ': '',
+    'ٰ': 'a',
+    '،': ',',
+    '؛': ';',
+    '؟': '?',
+  }
+  return normalizeSource(text)
+    .split(/(\s+)/)
+    .map((word) => {
+      if (word === 'و') return 'o' // Isolated conjunction/vocal extension in lyrics.
+      if (word === 'او') return 'oo'
+      let result = '',
+        previous = ''
+      for (const ch of word) {
+        if (ch === 'ّ') {
+          result += previous
+          continue
+        }
+        if (ch === '\u200c' || ch === '\u200d') continue
+        const digit = '۰۱۲۳۴۵۶۷۸۹'.indexOf(ch)
+        const arabicDigit = '٠١٢٣٤٥٦٧٨٩'.indexOf(ch)
+        const mapped =
+          (digit >= 0 ? String(digit) : arabicDigit >= 0 ? String(arabicDigit) : undefined) ??
+          letters[ch] ??
+          (/\p{Script=Arabic}/u.test(ch) ? `[u${ch.codePointAt(0).toString(16)}]` : ch)
+        result += mapped
+        if (/\p{L}/u.test(ch)) previous = mapped
+      }
+      return result
+    })
+    .join('')
+}
+const approximateResult = (text) => ({
+  raw: '',
+  finglish: approximateSpelling(text),
+  truncated: false,
+  approximate: true,
+})
 // Longest token first: raw "oun" must not become "ooon". Keep raw phones in results.
 const finglish = (raw) =>
   raw.replace(
@@ -239,7 +329,7 @@ async function recoverLine(text, infer = (part, limit) => generate(encoder, deco
     checkCancelled()
     const key = phraseKey(part)
     if (phrases.has(key)) return phrases.get(key)
-    if (budget.attempts >= 15 || budget.tokens >= 2048) return null
+    if (budget.attempts >= 15 || budget.tokens >= 2048) return approximateResult(part)
     budget.attempts++
     const limit = depth === 0 ? 512 : Math.min(256, Math.max(48, part.length * 4))
     const result = await infer(part, Math.min(limit, 2048 - budget.tokens))
@@ -253,31 +343,22 @@ async function recoverLine(text, infer = (part, limit) => generate(encoder, deco
       phrases.set(key, result)
       return result
     }
-    if (depth >= 4) return null
+    if (depth >= 4) return approximateResult(part)
     const parts = splitPhrase(part)
-    if (!parts || parts.some((p) => !p)) return null
+    if (!parts || parts.some((p) => !p)) return approximateResult(part)
     budget.split = true
     send('status', { message: 'Reading a difficult line in smaller phrases…', backend: 'wasm' })
     const left = await run(parts[0], depth + 1)
-    if (!left) return null
     const right = await run(parts[1], depth + 1)
-    if (!right) return null
     return {
-      raw: `${left.raw.trim()} ${right.raw.trim()}`,
+      raw: left.approximate || right.approximate ? '' : `${left.raw.trim()} ${right.raw.trim()}`,
       finglish: `${left.finglish.trim()} ${right.finglish.trim()}`,
+      approximate: Boolean(left.approximate || right.approximate),
       truncated: false,
     }
   }
   const result = await run(text, 0)
-  return result
-    ? { ...result, recovered: budget.split, tokens: budget.tokens }
-    : {
-        raw: '',
-        finglish: '',
-        truncated: false,
-        tokens: budget.tokens,
-        error: 'Could not convert this line after smaller-phrase retries. Original Persian kept.',
-      }
+  return { ...result, recovered: budget.split, tokens: budget.tokens }
 }
 
 // Sessions and completed lines survive song changes until this document closes.
@@ -347,11 +428,12 @@ onmessage = async ({ data }) => {
     const unique = new Set()
     const failed = new Map() // Avoid retrying identical failures repeatedly within one song.
     let failedLines = 0,
-      recoveredLines = 0
+      recoveredLines = 0,
+      approximateLines = 0
     for (let index = 0; index < data.lines.length; index++) {
       await yieldTask()
       checkCancelled()
-      const key = normalize(data.lines[index])
+      const key = normalizeSource(data.lines[index])
       send('status', {
         message: `Reading line ${index + 1} of ${data.lines.length}…`,
         backend: 'wasm',
@@ -373,6 +455,7 @@ onmessage = async ({ data }) => {
         continue
       }
       if (result.recovered) recoveredLines++
+      if (result.approximate) approximateLines++
       if (key) {
         unique.add(key)
         if (!cached) {
@@ -386,6 +469,7 @@ onmessage = async ({ data }) => {
     send('done', {
       failedLines,
       recoveredLines,
+      approximateLines,
       backend: 'wasm',
       warm,
       loadMs,

@@ -13,6 +13,7 @@ export interface LineOutput {
   truncated: false
   error?: string
   recovered?: boolean
+  approximate?: boolean
 }
 export interface ConversionStats {
   backend: 'wasm'
@@ -24,6 +25,7 @@ export interface ConversionStats {
   generatedLines: number
   failedLines?: number
   recoveredLines?: number
+  approximateLines?: number
 }
 export type EngineEvent = {
   type: 'status' | 'notice' | 'ready'
@@ -211,6 +213,7 @@ export class LyricsEngine {
         truncated: false as const,
         ...(failed ? { error: data.error as string } : {}),
         recovered: data.recovered === true,
+        approximate: data.approximate === true,
       }
       job.output[i] = result
       job.onLine?.(result, i)

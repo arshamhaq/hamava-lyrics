@@ -221,3 +221,12 @@ dialog.full-lyrics[open] {
     13px/1.5 Manrope,
     sans-serif;
 }
+
+.lyric-approximate {
+  display: block;
+  margin-top: 6px;
+  font:
+    12px/1.5 Manrope,
+    sans-serif;
+  color: var(--muted);
+}

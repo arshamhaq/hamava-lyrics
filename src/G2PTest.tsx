@@ -131,10 +131,13 @@ export default function G2PTest() {
       if (runController.current !== controller) return
       setStats(converted.stats)
       const failed = converted.lines.filter((line) => line.error).length
+      const approximate = converted.lines.filter((line) => line.approximate).length
       setStatus(
         failed
           ? `Finished. ${failed} lines could not be converted; their Persian originals are kept.`
-          : 'Finished. These are Negara’s outputs, without pronunciation corrections.',
+          : approximate
+            ? `Finished. ${approximate} approximate lines use a spelling fallback; check their Persian originals.`
+            : 'Finished. These are Negara’s outputs, without pronunciation corrections.',
       )
     } catch (e) {
       if (runController.current !== controller) return
@@ -319,6 +322,7 @@ export default function G2PTest() {
                   <>
                     <div className="g2p-small">
                       {result.cached ? 'Reused from this session' : `${Math.round(result.ms)} ms`}
+                      {result.approximate && <span> · Approximate spelling fallback</span>}
                       {result.recovered && <span> · Read in smaller phrases</span>}
                       {result.truncated && (
                         <strong className="g2p-error"> · INCOMPLETE: output limit reached</strong>
@@ -326,7 +330,11 @@ export default function G2PTest() {
                     </div>
                     <details className="g2p-raw">
                       <summary>Raw model pronunciation</summary>
-                      <code>{result.raw}</code>
+                      <code>
+                        {result.approximate
+                          ? 'No complete raw phoneme trace: this line includes a spelling fallback.'
+                          : result.raw}
+                      </code>
                     </details>
                   </>
                 )}
