@@ -102,6 +102,26 @@ export function plainText(record: any) {
     .filter(Boolean)
     .join('\n')
 }
+const verifiedAlternate = new Map<string, { text: string; expires: number }>()
+async function alternateLyrics(
+  title: string,
+  artist: string,
+  signal: AbortSignal,
+): Promise<string> {
+  const key = JSON.stringify([title, artist])
+  const cached = verifiedAlternate.get(key)
+  if (cached && cached.expires > Date.now()) return cached.text
+  const data = await providerJson(
+    `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`,
+    signal,
+  )
+  const lyrics = text(data?.lyrics).trim()
+  if (!lyrics || !persian(lyrics)) throw new ProviderError('No Persian lyrics found.', 404)
+  if (lyrics.length > 100_000) throw new ProviderError('These lyrics are too long to load.', 422)
+  if (verifiedAlternate.size >= 40) verifiedAlternate.delete(verifiedAlternate.keys().next().value!)
+  verifiedAlternate.set(key, { text: lyrics, expires: Date.now() + 300_000 })
+  return lyrics
+}
 export async function searchSongs(query: string, signal: AbortSignal): Promise<SearchResult> {
   const hits: SongHit[] = []
   let notice = ''
@@ -151,9 +171,10 @@ export async function searchSongs(query: string, signal: AbortSignal): Promise<S
         signal,
       )
       if (!Array.isArray(data?.data)) throw new ProviderError('Alternate search is unavailable.')
+      const candidates: SongHit[] = []
       for (const r of data.data.slice(0, 30)) {
         if (!Number.isSafeInteger(r?.id) || !text(r.title) || !text(r.artist?.name)) continue
-        hits.push({
+        candidates.push({
           provider: 'ovh',
           id: String(r.id),
           title: r.title,
@@ -163,6 +184,21 @@ export async function searchSongs(query: string, signal: AbortSignal): Promise<S
           hasLyrics: false,
         })
       }
+      // Verify a bounded shortlist before displaying catalog suggestions.
+      const verified = await Promise.all(
+        rankSongs(candidates, query)
+          .slice(0, 4)
+          .map(async (hit) => {
+            try {
+              await alternateLyrics(hit.title, hit.artist, signal)
+              return { ...hit, hasLyrics: true }
+            } catch (error) {
+              if (signal.aborted) throw error
+              return null
+            }
+          }),
+      )
+      hits.push(...verified.filter((hit): hit is SongHit => hit !== null))
       songs = rankSongs(hits, query)
     } catch (error) {
       if (signal.aborted) throw error
@@ -213,11 +249,7 @@ export async function loadSong(params: URLSearchParams, signal: AbortSignal): Pr
         'This record has no lyrics. Try another version or paste the Persian text.',
         404,
       )
-    const r = await providerJson(
-      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`,
-      signal,
-    )
-    lyrics = text(r?.lyrics)
+    lyrics = await alternateLyrics(title, artist, signal)
     source = 'lyrics.ovh'
     sourceUrl = 'https://lyrics.ovh/'
   }

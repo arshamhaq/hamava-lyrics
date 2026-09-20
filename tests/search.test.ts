@@ -64,7 +64,7 @@ it('broadens empty keyword results, filters non-Persian text and caches compact 
   await searchApi(request)
   expect(requests).toHaveLength(2)
 })
-it('labels alternate catalog matches unconfirmed and fetches Persian text only on selection', async () => {
+it('verifies alternate lyrics before showing a result and reuses them on selection', async () => {
   vi.resetModules()
   const { searchSongs, loadSong } = await import('../worker/search')
   const requests: string[] = []
@@ -81,14 +81,15 @@ it('labels alternate catalog matches unconfirmed and fetches Persian text only o
     }),
   )
   const results = await searchSongs('my song', new AbortController().signal)
-  expect(results.songs[0]).toMatchObject({ provider: 'ovh', hasLyrics: false })
-  expect(requests.some((url) => url.includes('/v1/'))).toBe(false)
+  expect(results.songs[0]).toMatchObject({ provider: 'ovh', hasLyrics: true })
+  expect(requests.filter((url) => url.includes('/v1/'))).toHaveLength(1)
   const song = await loadSong(
     new URLSearchParams({ provider: 'ovh', title: 'My Song', artist: 'Singer' }),
     new AbortController().signal,
   )
   expect(song.source).toBe('lyrics.ovh')
   expect(song.text).toBe('سلام\nخداحافظ')
+  expect(requests.filter((url) => url.includes('/v1/'))).toHaveLength(1)
 })
 it('strips LRC timestamps for unsynced reading and rejects mismatched record identities', async () => {
   vi.resetModules()
@@ -237,4 +238,32 @@ it('a health check validates the actual uncached LRCLIB response, including a bo
     (await (await searchApi(new Request('https://app.test/api/lyrics-health'))).json()).reachable,
   ).toBe(true)
   expect(remote).toHaveBeenCalledTimes(2)
+})
+
+it('omits empty, whitespace-only, missing and non-Persian alternate lyrics', async () => {
+  vi.resetModules()
+  const { searchSongs } = await import('../worker/search')
+  const bodies: Record<string, unknown> = {
+    A: { lyrics: '' },
+    B: { lyrics: '   ' },
+    C: {},
+    D: { lyrics: 'English' },
+  }
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url.includes('lrclib')) return Response.json([])
+      if (url.includes('/suggest/'))
+        return Response.json({
+          data: Object.keys(bodies).map((name, i) => ({
+            id: i + 1,
+            title: 'Song',
+            artist: { name },
+          })),
+        })
+      const name = decodeURIComponent(url.split('/v1/')[1].split('/')[0])
+      return Response.json(bodies[name])
+    }),
+  )
+  expect((await searchSongs('song', new AbortController().signal)).songs).toEqual([])
 })
