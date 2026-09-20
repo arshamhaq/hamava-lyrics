@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppUpdates>
       <ConnectivityNotice />
-      {location.pathname === '/search' ? (
+      {['/search', '/paste'].includes(location.pathname) ? (
         <Suspense fallback={<p style={{ padding: 32 }}>Opening search…</p>}>
           <SearchPage />
         </Suspense>

@@ -1,3 +1,4 @@
+import { ModelDownload, useModelDownload } from './components/ModelDownload'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
@@ -11,7 +12,6 @@ import {
   Ellipsis,
   Trash2,
 } from 'lucide-react'
-import { LyricsConnection } from './components/LyricsConnection'
 import { Brand } from './components/Brand'
 import { ThemeToggle } from './components/ThemeToggle'
 import { UpdateCheck } from './components/AppUpdates'
@@ -39,6 +39,8 @@ function lastQuery() {
   }
 }
 export default function SearchPage() {
+  const download = useModelDownload()
+  const pasteMode = location.pathname === '/paste'
   const [query, setQuery] = useState(lastQuery)
   const [hits, setHits] = useState<SongHit[]>([])
   const [open, setOpen] = useState(false)
@@ -74,7 +76,7 @@ export default function SearchPage() {
     try {
       sessionStorage.setItem('hamava-search-query', query)
     } catch {}
-    if (query.trim().length < 2) {
+    if (pasteMode || query.trim().length < 2) {
       setSearching(false)
       return
     }
@@ -99,7 +101,10 @@ export default function SearchPage() {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [query, retrySearch])
+  }, [query, retrySearch, pasteMode])
+  useEffect(() => {
+    if (searchError || notice) window.dispatchEvent(new Event('hamava:check-lyrics'))
+  }, [searchError, notice])
   useEffect(() => () => selection.current?.abort(), [])
   useEffect(() => {
     if (active >= 0)
@@ -117,6 +122,7 @@ export default function SearchPage() {
     setRows([])
     setSong(null)
     setBusy(true)
+    download.reset()
     return controller
   }
   async function convert(source: SongText, key: string, controller: AbortController) {
@@ -143,11 +149,15 @@ export default function SearchPage() {
       },
       onEvent: (event) => {
         if (controller.signal.aborted) return
+        download.update(event)
         if (event.type === 'ready') setStatus('Reading the Persian lyrics…')
         else if (event.message)
           setStatus(
-            event.message +
-              (event.total ? ` ${Math.round((100 * (event.loaded || 0)) / event.total)}%` : ''),
+            /^(Downloading |Loading browser CPU |Preparing (encoder|decoder)|Reading cached )/.test(
+              event.message,
+            )
+              ? 'Preparing your Finglish reader…'
+              : event.message,
           )
       },
     })
@@ -287,169 +297,180 @@ export default function SearchPage() {
         <section className="search-heading" aria-labelledby="search-title">
           <span className="eyebrow">YOUR LYRICS LIBRARY</span>
           <h1 id="search-title">
-            Find your <em>song.</em>
+            {pasteMode ? (
+              <>
+                Paste your <em>lyrics.</em>
+              </>
+            ) : (
+              <>
+                Find your <em>song.</em>
+              </>
+            )}
           </h1>
-          <p>Listen anywhere. Read and copy any line.</p>
         </section>
-        <LyricsConnection failureKey={searchError || notice ? `${query}:${retrySearch}` : ''} />
-        {(searchError || notice) && (
-          <div className="search-request-error" role="alert">
-            {searchError || notice}
-            <button
-              onClick={() => {
-                setRetrySearch((v) => v + 1)
-                setOpen(true)
+        {!pasteMode && (
+          <>
+            {(searchError || notice) && (
+              <div className="search-request-error" role="alert">
+                {searchError || notice}
+                <button
+                  onClick={() => {
+                    setRetrySearch((v) => v + 1)
+                    setOpen(true)
+                  }}
+                >
+                  Retry search
+                </button>
+              </div>
+            )}
+            <div
+              className="song-search"
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false)
               }}
             >
-              Retry search
-            </button>
-          </div>
-        )}
-        <div
-          className="song-search"
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false)
-          }}
-        >
-          <label className="sr-only" htmlFor="song-search">
-            Song or artist
-          </label>
-          <div className="search-input-wrap">
-            <Search size={22} aria-hidden="true" />
-            <input
-              ref={input}
-              id="song-search"
-              type="search"
-              role="combobox"
-              autoComplete="off"
-              placeholder="Song or artist · نام آهنگ یا خواننده"
-              value={query}
-              maxLength={120}
-              aria-expanded={open && query.trim().length >= 2}
-              aria-controls="song-options"
-              aria-autocomplete="list"
-              aria-activedescendant={open && active >= 0 ? `song-option-${active}` : undefined}
-              onFocus={() => setOpen(true)}
-              onChange={(e) => {
-                setQuery(e.target.value)
-                setOpen(true)
-                setActive(-1)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setOpen(false)
-                  setActive(-1)
-                }
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                  e.preventDefault()
-                  setOpen(true)
-                  if (hits.length)
-                    setActive(
-                      (i) =>
-                        (i + (e.key === 'ArrowDown' ? 1 : hits.length - 1) + hits.length) %
-                        hits.length,
-                    )
-                }
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  if (open && hits[active]) void choose(hits[active])
-                  else if (hits.length === 1) void choose(hits[0])
-                  else setOpen(true)
-                }
-              }}
-            />
-            {query && (
-              <button
-                className="icon-button"
-                aria-label="Clear search"
-                onClick={() => {
-                  setQuery('')
-                  input.current?.focus()
-                }}
-              >
-                <X size={18} />
-              </button>
-            )}
-          </div>
-          {open && query.trim().length >= 2 && (
-            <div className="search-dropdown">
-              <div role="status" className="search-feedback">
-                {searching
-                  ? 'Searching songs…'
-                  : (searchError ? 'Search could not finish. See the message above.' : '') ||
-                    notice ||
-                    (hits.length
-                      ? `${hits.length} matches`
-                      : searched
-                        ? 'No close matches. Try a different spelling or add the artist.'
-                        : '')}
-              </div>
-              <div id="song-options" role="listbox" aria-label="Song suggestions">
-                {hits.map((hit, index) => (
-                  <div
-                    key={`${hit.provider}:${hit.id}`}
-                    id={`song-option-${index}`}
-                    role="option"
-                    aria-selected={active === index}
-                    className="song-option"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => void choose(hit)}
+              <label className="sr-only" htmlFor="song-search">
+                Song or artist
+              </label>
+              <div className="search-input-wrap">
+                <Search size={22} aria-hidden="true" />
+                <input
+                  ref={input}
+                  id="song-search"
+                  type="search"
+                  role="combobox"
+                  autoComplete="off"
+                  placeholder="Song or artist · نام آهنگ یا خواننده"
+                  value={query}
+                  maxLength={120}
+                  aria-expanded={open && query.trim().length >= 2}
+                  aria-controls="song-options"
+                  aria-autocomplete="list"
+                  aria-activedescendant={open && active >= 0 ? `song-option-${active}` : undefined}
+                  onFocus={() => setOpen(true)}
+                  onChange={(e) => {
+                    setQuery(e.target.value)
+                    setOpen(true)
+                    setActive(-1)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setOpen(false)
+                      setActive(-1)
+                    }
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                      e.preventDefault()
+                      setOpen(true)
+                      if (hits.length)
+                        setActive(
+                          (i) =>
+                            (i + (e.key === 'ArrowDown' ? 1 : hits.length - 1) + hits.length) %
+                            hits.length,
+                        )
+                    }
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (open && hits[active]) void choose(hits[active])
+                      else if (hits.length === 1) void choose(hits[0])
+                      else setOpen(true)
+                    }
+                  }}
+                />
+                {query && (
+                  <button
+                    className="icon-button"
+                    aria-label="Clear search"
+                    onClick={() => {
+                      setQuery('')
+                      input.current?.focus()
+                    }}
                   >
-                    <span className="result-symbol">
-                      <BookOpen size={19} />
-                    </span>
-                    <span className="result-text">
-                      <strong dir="auto">{hit.title}</strong>
-                      <span dir="auto">
-                        {hit.artist}
-                        {hit.album ? ` · ${hit.album}` : ''}
-                      </span>
-                      <small>
-                        {hit.provider === 'lrclib' ? 'LRCLIB' : 'lyrics.ovh · Deezer catalog'} ·{' '}
-                        {hit.hasLyrics ? 'Persian lyrics' : 'Lyrics not confirmed'}
-                      </small>
-                    </span>
-                    <span className="result-duration">
-                      {hit.duration ? formatTime(hit.duration * 1000) : '—'}
-                    </span>
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+              {open && query.trim().length >= 2 && (
+                <div className="search-dropdown">
+                  <div role="status" className="search-feedback">
+                    {searching
+                      ? 'Searching songs…'
+                      : (searchError ? 'Search could not finish. See the message above.' : '') ||
+                        notice ||
+                        (hits.length
+                          ? `${hits.length} matches`
+                          : searched
+                            ? 'No close matches. Try a different spelling or add the artist.'
+                            : '')}
                   </div>
-                ))}
-              </div>
-              {!searching && !hits.length && (
-                <div className="external-sources">
-                  <span>You can find text elsewhere and paste it below:</span>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={`https://music-fa.com/?s=${encodeURIComponent(query)}`}
-                  >
-                    MusicFa <ExternalLink size={13} />
-                  </a>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={`https://genius.com/search?q=${encodeURIComponent(query)}`}
-                  >
-                    Genius <ExternalLink size={13} />
-                  </a>
+                  <div id="song-options" role="listbox" aria-label="Song suggestions">
+                    {hits.map((hit, index) => (
+                      <div
+                        key={`${hit.provider}:${hit.id}`}
+                        id={`song-option-${index}`}
+                        role="option"
+                        aria-selected={active === index}
+                        className="song-option"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => void choose(hit)}
+                      >
+                        <span className="result-symbol">
+                          <BookOpen size={19} />
+                        </span>
+                        <span className="result-text">
+                          <strong dir="auto">{hit.title}</strong>
+                          <span dir="auto">
+                            {hit.artist}
+                            {hit.album ? ` · ${hit.album}` : ''}
+                          </span>
+                          <small>
+                            {hit.provider === 'lrclib' ? 'LRCLIB' : 'lyrics.ovh · Deezer catalog'} ·{' '}
+                            {hit.hasLyrics ? 'Persian lyrics' : 'Lyrics not confirmed'}
+                          </small>
+                        </span>
+                        <span className="result-duration">
+                          {hit.duration ? formatTime(hit.duration * 1000) : '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {!searching && !hits.length && (
+                    <div className="external-sources">
+                      <span>Find text elsewhere, then use Paste Persian lyrics:</span>
+                      <a href="/paste">Paste Persian lyrics</a>
+                      <a
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`https://music-fa.com/?s=${encodeURIComponent(query)}`}
+                      >
+                        MusicFa <ExternalLink size={13} />
+                      </a>
+                      <a
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`https://genius.com/search?q=${encodeURIComponent(query)}`}
+                      >
+                        Genius <ExternalLink size={13} />
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-        <p className="search-hint">
-          A few words are enough. Try{' '}
-          <button
-            onClick={() => {
-              setQuery('kooh googoosh')
-              setOpen(true)
-              input.current?.focus()
-            }}
-          >
-            Kooh by Googoosh
-          </button>{' '}
-          or the artist’s name.
-        </p>
+            <p className="search-hint">
+              A few words are enough. Try{' '}
+              <button
+                onClick={() => {
+                  setQuery('kooh googoosh')
+                  setOpen(true)
+                  input.current?.focus()
+                }}
+              >
+                Kooh by Googoosh
+              </button>{' '}
+              or the artist’s name.
+            </p>
+          </>
+        )}
         {!song && !busy && saved.length > 0 && (
           <section className="saved-songs" aria-label="Saved songs">
             <h2>On this device</h2>
@@ -487,6 +508,7 @@ export default function SearchPage() {
             )}
           </section>
         )}
+        <ModelDownload progress={download.progress} />
         <div className="reading-status" role="status">
           {busy && <LoaderCircle className="search-spinner" size={17} />}
           <span>
@@ -579,9 +601,9 @@ export default function SearchPage() {
             </footer>
           </section>
         )}
-        <section className="search-fallbacks" aria-label="Other ways to find lyrics">
-          <details>
-            <summary>Paste Persian lyrics</summary>
+        {pasteMode && (
+          <section className="search-fallbacks paste-form" aria-label="Paste Persian lyrics">
+            <h2>Persian lyrics</h2>
             <p>Found the words somewhere else? Read them here in Finglish.</p>
             <form
               onSubmit={(e) => {
@@ -613,8 +635,8 @@ export default function SearchPage() {
                 Read in Finglish <ArrowRight size={16} />
               </button>
             </form>
-          </details>
-        </section>
+          </section>
+        )}
       </main>
       {full && song && (
         <FullLyrics synced={false} track={song} lines={rows} onClose={() => setFull(false)} />

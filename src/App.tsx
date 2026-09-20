@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowDown, ArrowDownToLine, ArrowLeft, ArrowRight, Check, Search, X } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Search,
+  ClipboardPaste,
+  X,
+} from 'lucide-react'
 import { UpdateCheck } from './components/AppUpdates'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Brand } from './components/Brand'
@@ -100,7 +109,6 @@ export default function App() {
                   <h1 id="page-title">
                     Lyrics, in <em>Finglish.</em>
                   </h1>
-                  <p>Follow the line. Keep the words.</p>
                 </div>
                 <ScriptLens />
               </div>
@@ -130,6 +138,17 @@ export default function App() {
                     <small>READ & COPY</small>
                     <strong>Search a song</strong>
                     <span>Find the words. Copy any line.</span>
+                  </span>
+                  <ArrowRight size={22} />
+                </a>
+                <a className="mode-card paste-card" href="/paste">
+                  <span className="mode-icon">
+                    <ClipboardPaste size={25} />
+                  </span>
+                  <span className="mode-card-text">
+                    <small>YOUR LYRICS</small>
+                    <strong>Paste Persian lyrics</strong>
+                    <span>Turn your own text into Finglish.</span>
                   </span>
                   <ArrowRight size={22} />
                 </a>

@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+})
 
 const audioTime = (page: import('@playwright/test').Page) =>
   page.locator('audio').evaluate((el: HTMLAudioElement) => el.currentTime)
@@ -87,12 +92,7 @@ test('guided controls, local settings and focus remain usable', async ({ page })
   await page.goto('/#demo')
   await page.getByRole('switch', { name: 'Show Persian' }).click()
   await expect(page.locator('.lyric-text [lang="fa"]')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Save song', exact: true }).click()
-  await page.reload()
-  await expect(page.getByRole('button', { name: 'Unsave song', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
+  await expect(page.getByRole('button', { name: /Save song|Unsave song/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'Hide tips', exact: true }).click()
   await expect(page.locator('.guide-note')).toHaveCount(0)
   await page.getByRole('button', { name: 'Show tips', exact: true }).click()
@@ -133,6 +133,7 @@ test('fits the viewport, reveals the demo and opens an honest offline shell', as
   page,
   context,
 }) => {
+  test.setTimeout(60000) // Includes screenshots, service-worker installation and an offline reload.
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')

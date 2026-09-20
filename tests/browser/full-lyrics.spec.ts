@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+})
 
 const audioTime = (page: import('@playwright/test').Page) =>
   page.locator('audio').evaluate((el: HTMLAudioElement) => el.currentTime)

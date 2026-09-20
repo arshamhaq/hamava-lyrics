@@ -670,3 +670,29 @@
     height: 44px;
   }
 }
+
+/* A third entry route stays compact beneath the two music choices. */
+.paste-card {
+  grid-column: 1 / -1;
+  min-height: 76px;
+  padding-block: 13px;
+}
+.paste-card .mode-card-text > span {
+  font-size: 13px;
+}
+.guide-toolbar {
+  justify-content: flex-end;
+}
+.demo-player-outlined {
+  outline: 2px dashed var(--annotation);
+  outline-offset: 6px;
+  border-radius: 35px;
+}
+.demo-controls-note {
+  max-width: 650px;
+  margin: 22px auto 8px;
+  text-align: center;
+}
+.paste-form {
+  margin-top: 12px;
+}

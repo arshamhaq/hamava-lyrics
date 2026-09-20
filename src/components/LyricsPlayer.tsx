@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
-  Heart,
   LoaderCircle,
   Maximize2,
   Pause,
@@ -47,13 +46,6 @@ export function LyricsPlayer({
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const copyRequest = useRef(0)
   const [message, setMessage] = useState('')
-  const [saved, setSaved] = useState(() => {
-    try {
-      return localStorage.getItem('hamava:demo-saved') === 'true'
-    } catch {
-      return false
-    }
-  })
   const widget = useRef<HTMLDivElement>(null)
   useGuideEntrance(widget, tips, guidesReady)
   const list = useRef<HTMLDivElement>(null)
@@ -100,14 +92,6 @@ export function LyricsPlayer({
       setMessage('Copy is unavailable. Select the line and copy it manually.')
     }
   }
-  const save = () => {
-    try {
-      localStorage.setItem('hamava:demo-saved', String(!saved))
-      setSaved(!saved)
-    } catch {
-      setMessage('This browser couldn’t save your preference.')
-    }
-  }
   const vocalLines = lines.filter((line) => line.finglish)
   const lineNumbers = new Map(vocalLines.map((line, index) => [line.id, index + 1]))
   const previous = [...vocalLines].reverse().find((line) => line.startMs < player.positionMs - 500)
@@ -117,7 +101,6 @@ export function LyricsPlayer({
     <div ref={widget} className="lyrics-widget">
       {guided && (
         <div className="guide-toolbar">
-          <span>Play, drag, and try the controls</span>
           <button aria-pressed={tips} onClick={() => setTips(!tips)}>
             {tips ? 'Hide tips' : 'Show tips'}
           </button>
@@ -139,14 +122,6 @@ export function LyricsPlayer({
               <h2>{track.title}</h2>
               <p>{track.artist}</p>
             </div>
-            <button
-              className={`save-button ${saved ? 'saved' : ''}`}
-              aria-label={saved ? 'Unsave song' : 'Save song'}
-              aria-pressed={saved}
-              onClick={save}
-            >
-              <Heart size={19} fill={saved ? 'currentColor' : 'none'} />
-            </button>
           </div>
           {tips && (
             <p className="guide-note cover-guide" data-guide="cover">
@@ -294,7 +269,10 @@ export function LyricsPlayer({
           )}
         </div>
       </section>
-      <section className="player" aria-label="Song controls">
+      <section
+        className={`player ${tips ? 'demo-player-outlined' : ''}`}
+        aria-label="Song controls"
+      >
         <div className="player-track">
           <img src={track.coverSrc} alt="" width="44" height="44" />
           <div>
@@ -346,16 +324,12 @@ export function LyricsPlayer({
         </button>
       </section>
       {tips && (
-        <div className="transport-guides">
-          <p className="guide-note step-guide" data-guide="step">
-            <SketchArrow kind="swoop" mirror />
-            <span>Back a line, or on to the next.</span>
-          </p>
-          <p className="guide-note seek-guide" data-guide="seek">
-            <SketchArrow />
-            <span>Drag here. The music & words follow along.</span>
-          </p>
-        </div>
+        <p className="guide-note demo-controls-note" data-guide="demo-controls">
+          <span>
+            These controls are just for trying the demo. Spotify mode will sync automatically once
+            connected.
+          </span>
+        </p>
       )}
       {player.error && (
         <p className="audio-error" role="alert">

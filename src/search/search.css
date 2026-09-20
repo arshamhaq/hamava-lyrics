@@ -474,53 +474,14 @@
   padding: 8px 16px;
 }
 
-.lyrics-connection {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+.search-request-error {
   margin-bottom: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
+  color: var(--ink);
 }
-.lyrics-connection > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.lyrics-connection svg {
-  flex-shrink: 0;
-}
-.lyrics-connection button,
 .search-request-error button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
   min-height: 44px;
   padding: 6px 8px;
   background: transparent;
   border: 0;
   color: var(--accent);
-}
-.connection-app,
-.connection-provider,
-.connection-busy {
-  color: var(--ink);
-  border-color: var(--accent);
-}
-.search-request-error {
-  margin-bottom: 14px;
-  color: var(--ink);
-}
-@media (max-width: 480px) {
-  .lyrics-connection {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
 }

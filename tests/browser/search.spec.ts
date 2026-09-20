@@ -132,7 +132,7 @@ test('empty/error search and missing lyrics allow pasted text without media cont
   await page.goto('/search')
   await page.getByRole('combobox').fill('missing song')
   await expect(page.getByText(/No close matches/)).toBeVisible()
-  await page.getByText('Paste Persian lyrics', { exact: true }).click()
+  await page.getByRole('link', { name: 'Paste Persian lyrics', exact: true }).click()
   await page.getByLabel('Persian lyrics', { exact: true }).fill('سلام')
   await page.getByRole('button', { name: 'Read in Finglish' }).click()
   await expect(page.locator('.song-reader-lines [lang="fa-Latn"]')).toHaveText(['salam'])
@@ -140,6 +140,7 @@ test('empty/error search and missing lyrics allow pasted text without media cont
   await context.route('**/api/search?*', (r) =>
     r.fulfill({ status: 502, json: { error: 'Provider unavailable' } }),
   )
+  await page.goto('/search')
   await page.getByRole('combobox').fill('network error')
   await expect(page.getByText('Provider unavailable')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Retry search' })).toBeVisible()
@@ -299,11 +300,11 @@ test('provider outage shows a persistent connection hint and allows a successful
   )
   await page.goto('/search')
   await page.getByRole('combobox').fill('connection test')
-  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  await expect(page.locator('.lyrics-connection, .connectivity-banner')).toHaveCount(0)
   await expect(page.getByText('Searching songs…', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Retry search' }).click()
   await expect(page.getByRole('option')).toBeVisible()
-  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  await expect(page.locator('.lyrics-connection, .connectivity-banner')).toHaveCount(0)
   expect(calls).toBe(2)
 })
 test('a stalled search ends with retry while a real connectivity check succeeds', async ({
@@ -320,16 +321,13 @@ test('a stalled search ends with retry while a real connectivity check succeeds'
   })
   await page.clock.install()
   await page.goto('/search')
-  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  await expect(page.locator('.lyrics-connection, .connectivity-banner')).toHaveCount(0)
   await page.getByRole('combobox').fill('stalled search')
   await page.clock.runFor(500)
   await page.clock.fastForward(16000)
   await expect(page.locator('.search-request-error')).toContainText('timed out')
   await expect(page.getByText('Searching songs…', { exact: true })).toHaveCount(0)
-  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
-  const status = await page.locator('.lyrics-connection').boundingBox()
-  const input = await page.getByRole('combobox').boundingBox()
-  expect(status!.y + status!.height).toBeLessThan(input!.y)
+  await expect(page.locator('.lyrics-connection, .connectivity-banner')).toHaveCount(0)
   release()
   await context.route('**/api/search?*', (r) => r.fulfill({ json: { songs: [first] } }))
   await page.getByRole('button', { name: 'Retry search' }).click()
@@ -341,7 +339,7 @@ test('a stalled search ends with retry while a real connectivity check succeeds'
     fullPage: true,
   })
 })
-test('connection check distinguishes provider failure from inability to reach Hamava and can be retried', async ({
+test('connection failures appear at the top and successful checks stay silent', async ({
   page,
   context,
 }) => {
@@ -349,13 +347,47 @@ test('connection check distinguishes provider failure from inability to reach Ha
     r.fulfill({ json: { reachable: false, checkedAt: Date.now(), reason: 'unavailable' } }),
   )
   await page.goto('/search')
-  await expect(page.locator('.lyrics-connection')).toContainText('Hamava is reachable, but LRCLIB')
-  await context.route('**/api/lyrics-health', (r) => r.abort())
-  await page.getByRole('button', { name: 'Check LRCLIB connection' }).click()
-  await expect(page.locator('.lyrics-connection')).toContainText('Couldn’t reach Hamava')
+  const banner = page.getByRole('alert', { name: 'Connection status' })
+  await expect(banner).toContainText('Hamava can’t reach the lyrics service')
+  expect((await banner.boundingBox())!.y).toBe(0)
   await context.route('**/api/lyrics-health', (r) =>
     r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
   )
-  await page.getByRole('button', { name: 'Check LRCLIB connection' }).click()
-  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  await page.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(banner).toHaveCount(0)
+  await expect(page.getByText(/LRCLIB reached|Checking LRCLIB/)).toHaveCount(0)
+})
+test('homepage paste action opens the shared unsynced reader without search controls', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/')
+  await page.getByRole('link', { name: /Paste Persian lyrics/ }).click()
+  await expect(page).toHaveURL(/\/paste$/)
+  await expect(page.getByRole('combobox')).toHaveCount(0)
+  await page.getByLabel('Persian lyrics', { exact: true }).fill('سلام')
+  await page.getByRole('button', { name: 'Read in Finglish' }).click()
+  await expect(page.locator('.song-reader-lines [lang="fa-Latn"]')).toHaveText(['salam'])
+})
+test('first download bar aggregates files and reaches 100 only on completion', async ({
+  page,
+  context,
+}) => {
+  await context.route('**/g2p-worker.js*', (r) =>
+    r.fulfill({
+      contentType: 'text/javascript',
+      body: `onmessage=({data:d})=>{
+    if(d.type!=='run')return;
+    postMessage({type:'status',jobId:d.jobId,downloadLoaded:100,downloadTotal:100,downloadComplete:false});
+    setTimeout(()=>{postMessage({type:'status',jobId:d.jobId,downloadLoaded:100,downloadTotal:100,downloadComplete:true});d.lines.forEach((text,index)=>postMessage({type:'line',jobId:d.jobId,index,raw:'salam',finglish:'salam',truncated:false}));postMessage({type:'done',jobId:d.jobId})},1000)
+  }`,
+    }),
+  )
+  await page.goto('/paste')
+  await page.getByLabel('Persian lyrics', { exact: true }).fill('سلام')
+  await page.getByRole('button', { name: 'Read in Finglish' }).click()
+  const bar = page.getByRole('progressbar', { name: 'Finglish reader download' })
+  await expect(bar).toHaveAttribute('value', '99')
+  await expect(page.getByText('First-time download', { exact: true })).toBeVisible()
+  await expect(bar).toHaveAttribute('value', '100')
 })

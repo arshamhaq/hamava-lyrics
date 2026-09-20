@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+})
 
 test('demo peeks above the fold and notes draw once after its reveal', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
@@ -44,10 +49,10 @@ test('compact toolbar fits narrow screens with the follow note above it', async 
   expect(note.y + note.height).toBeLessThanOrEqual(boxes[0]!.y + 1)
   await expect(page.locator('.record-sleeve')).toHaveAttribute('src', '/gharibe-ashena-cover.jpg')
   await expect(page.locator('.record-sleeve')).toHaveJSProperty('naturalWidth', 450)
-  await expect(page.locator('[data-guide]')).toHaveCount(6)
+  await expect(page.locator('[data-guide]')).toHaveCount(5)
   await expect(page.locator('[data-entrance="waiting"], [data-entrance="drawing"]')).toHaveCount(0)
-  await page.locator('.transport-guides').scrollIntoViewIfNeeded()
-  await expect(page.getByText('Back a line, or on to the next.')).toBeVisible()
+  await page.locator('.demo-controls-note').scrollIntoViewIfNeeded()
+  await expect(page.getByText(/These controls are just for trying the demo/)).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({
     path: `test-results/hamava-compact-${info.project.name}.png`,

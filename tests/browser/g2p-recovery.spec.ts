@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+})
+
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 test.use({ serviceWorkers: 'block' })
@@ -79,8 +85,7 @@ for (const [id, target] of [
 test('real CPU completes the short repeated vocal line', async ({ page, context }, info) => {
   test.setTimeout(90000)
   await context.route(/https:\/\/(huggingface\.co|cdn\.jsdelivr\.net)\//, (r) => r.abort())
-  await page.goto('/search')
-  await page.getByText('Paste Persian lyrics', { exact: true }).click()
+  await page.goto('/paste')
   await page.getByLabel('Persian lyrics', { exact: true }).fill('بغل تو و و عطر تن تو و و')
   await page.getByRole('button', { name: 'Read in Finglish' }).click()
   await expect(page.locator('.reading-status')).toContainText('Ready', { timeout: 60000 })
