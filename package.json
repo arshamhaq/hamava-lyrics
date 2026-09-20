@@ -1,6 +1,6 @@
 {
   "name": "hamava",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "vitest run tests/timeline.test.ts tests/lyrics.test.ts tests/worker.test.ts tests/g2p.test.ts tests/engine.test.ts tests/search.test.ts",
+    "test": "vitest run tests/timeline.test.ts tests/lyrics.test.ts tests/worker.test.ts tests/g2p.test.ts tests/engine.test.ts tests/search.test.ts tests/search-client.test.ts",
     "test:e2e": "playwright test",
     "check": "npm run test && npm run build && npm run test:e2e",
     "icons": "node scripts/generate-icons.mjs",

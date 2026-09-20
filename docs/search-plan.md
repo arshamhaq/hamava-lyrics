@@ -1,4 +1,4 @@
-# Search and unsynced reading — v0.7.4
+# Search and unsynced reading — v0.7.5
 
 Implemented at `/search`. The homepage's Search a song button opens this route.
 Spotify remains a placeholder. The Googoosh audio demo is unchanged.
@@ -7,9 +7,11 @@ Spotify remains a placeholder. The Googoosh audio demo is unchanged.
 
 - Debounce 400 ms after at least two characters. Up to 12 suggestions show song,
   artist, album/version, duration if known, provider and lyric availability.
-- The example button searches Kooh by Googoosh. Slow searches (five seconds),
-  failures and provider notices show a small connection/VPN hint outside the
-  dropdown. Retry is available for both errors and provider notices.
+- The example button searches Kooh by Googoosh. A card above the input performs
+  a real uncached LRCLIB request through Hamava, on opening, search failure and
+  manual Check again. It distinguishes app/check failure from provider failure
+  and shows when the check succeeded. No timer-based reachability inference.
+  Retry search stays above the dropdown for errors and provider notices.
 - Accessible combobox: arrows, Enter, Escape, click/touch, stale-request
   cancellation, loading/error/empty feedback and retry. Query is remembered for
   the browser session. Different recordings remain distinct by provider ID.
@@ -49,9 +51,13 @@ in Vite dev/preview, so `npm run dev` needs no separate Worker process for searc
 The Worker only fetches and normalizes provider data; inference stays in the
 browser. No API keys, AI binding, D1 or paid search API were added.
 
-Requests have a 22-second overall deadline, 8-second upstream timeout, 2 MB
-upstream response limit, bounded input and result counts, and fixed upstream
-hosts. LRCLIB calls are sequential per isolate with 250 ms spacing. Upstream
+Requests have a 12-second overall server deadline, 5-second upstream deadline,
+15-second browser deadline, 2 MB upstream response limit, bounded input/result
+counts and fixed upstream hosts. Deadlines race the complete operation, including
+body reading, and abort its I/O. Visibility resume checks wall-clock expiry.
+LRCLIB variants stay sequential within a search with 250 ms spacing. Concurrent
+searches do not share live promises; only completed data and numeric cooldowns
+are global. Upstream
 429/Retry-After is honored with a host cooldown; no fallback storm follows it.
 A failed LRCLIB connection stops keyword retries and attempts the alternate
 provider once; an empty successful response still permits broadened searches.

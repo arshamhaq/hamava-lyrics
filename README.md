@@ -7,7 +7,32 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current update: partial artist search and connection feedback (v0.7.4)
+## Current fix: independent searches and real connection checks (v0.7.5)
+
+Search no longer shares a global live promise queue across requests. An old
+request cannot hold up a newer search or health check. Explicit deadlines cover
+fetch and body reading: 5 seconds per provider, 12 seconds for a server search,
+15 seconds for the browser. Resuming a suspended page checks wall-clock expiry.
+Failures end with a visible Retry search action; stale results cannot replace a
+newer query.
+
+Above the search box, the connection card makes a fresh request through Hamava
+to LRCLIB's search API. It distinguishes LRCLIB success, upstream failure/rate
+limiting, and failure to complete the Hamava check. It shows the check time and
+has a Check again button. It is not inferred from how long the song search takes.
+Checks run on opening Search, after search failure, and on demand; health results
+are not cached. [Investigation and phone acceptance](docs/search-reliability.md).
+
+Verified: 44 unit tests, production typecheck/build, 24 desktop/mobile-emulated
+browser checks and concurrent live LRCLIB requests through local Cloudflare
+workerd. Real iPhone acceptance is still pending. Decoder/fallback logic and
+model caches are unchanged.
+
+Deploy with `npm run deploy:token`, reload the installed app and confirm **v0.7.5**.
+Search `del bordi` and `kooh goo`, including after switching away and returning.
+If a search still fails, report both the connection-card result and search error.
+
+## Previous update: partial artist search and connection feedback (v0.7.4)
 
 Search now accepts a trailing artist prefix of at least three characters when a
 separate title word matches: `kooh goo` finds Kooh by Googoosh. Existing title,
