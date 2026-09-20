@@ -29,6 +29,9 @@ export interface ConversionStats {
 }
 export type EngineEvent = {
   type: 'status' | 'notice' | 'ready'
+  downloadLoaded?: number
+  downloadTotal?: number
+  downloadComplete?: boolean
   message?: string
   loaded?: number
   total?: number

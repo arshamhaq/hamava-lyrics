@@ -121,3 +121,17 @@ Run normal checks with `npm run check`. The opt-in real-model cases additionally
 `HAMAVA_G2P_ASSETS="$PWD/research-private/browser-g2p"` as documented in the previous
 browser test notes. The owner-reported fast CPU result motivated this integration;
 no new customer result file was available in the conversation to inspect.
+
+## First-download UI (v0.7.6)
+
+Search, Paste and the raw test reader share `ModelDownload`. Worker status events
+include aggregate `downloadLoaded`, `downloadTotal` and `downloadComplete`. Total
+size is 46,836,138 bytes: both pinned ONNX files plus the ORT script, module and
+WASM runtime. Model streams report incremental bytes; runtime packages are
+credited once runtime/session initialization confirms they are available. The
+UI caps incomplete setup at 99%, then shows 100% when both sessions are ready.
+
+No new fetch path, weights or cache namespace was introduced. A fully cached
+model load emits no first-download bar. Cached bytes count toward completion
+when only one of the model files needs downloading again. Raw phonemes, phrase
+recovery, approximation labels and copying are unchanged.

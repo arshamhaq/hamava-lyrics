@@ -1,3 +1,4 @@
+import { ModelDownload, useModelDownload } from './components/ModelDownload'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Copy, Download, Play, Square } from 'lucide-react'
 import { Brand } from './components/Brand'
@@ -8,6 +9,7 @@ import './g2p/test.css'
 const seconds = (ms: number) => `${(ms / 1000).toFixed(2)} s`
 
 export default function G2PTest() {
+  const assetDownload = useModelDownload()
   const [text, setText] = useState(''),
     [recordId, setRecordId] = useState(String(SONG.id))
   const [source, setSource] = useState<LyricsSource | null>(null),
@@ -17,8 +19,7 @@ export default function G2PTest() {
   const [busy, setBusy] = useState(false),
     [status, setStatus] = useState('Loading the Persian lyrics…')
   const [notice, setNotice] = useState(''),
-    [error, setError] = useState(''),
-    [progress, setProgress] = useState<number | null>(null)
+    [error, setError] = useState('')
   const [stats, setStats] = useState<ConversionStats | null>(null),
     [loadMs, setLoadMs] = useState<number | null>(null)
   const [copied, setCopied] = useState<number | null>(null)
@@ -71,7 +72,6 @@ export default function G2PTest() {
     runController.current?.abort()
     runController.current = null
     setBusy(false)
-    setProgress(null)
     setStatus('Stopped. Finished lines remain below.')
   }
   async function start() {
@@ -96,8 +96,8 @@ export default function G2PTest() {
     setError('')
     setNotice('')
     setBusy(true)
+    assetDownload.reset()
     setCopied(null)
-    setProgress(null)
     setStatus('Starting browser CPU conversion…')
     meta.current = {
       appVersion: __APP_VERSION__,
@@ -112,14 +112,13 @@ export default function G2PTest() {
         onLine: (line, index) => {
           if (runController.current === controller) {
             setResults((previous) => ({ ...previous, [index]: line }))
-            setProgress(null)
           }
         },
         onEvent: (event) => {
           if (runController.current !== controller) return
+          assetDownload.update(event)
           if (event.type === 'status') {
             setStatus(event.message ?? 'Working…')
-            setProgress(event.total ? Math.min(1, (event.loaded ?? 0) / event.total) : null)
           }
           if (event.type === 'notice') setNotice(event.message ?? '')
           if (event.type === 'ready') {
@@ -148,7 +147,6 @@ export default function G2PTest() {
     } finally {
       if (runController.current === controller) {
         setBusy(false)
-        setProgress(null)
         runController.current = null
       }
     }
@@ -266,6 +264,7 @@ export default function G2PTest() {
             />
           </details>
         </section>
+        <ModelDownload progress={assetDownload.progress} />
         <section className="g2p-status" aria-label="Run progress">
           <div>
             <strong>
@@ -276,7 +275,6 @@ export default function G2PTest() {
             </span>
           </div>
           <p role="status">{status}</p>
-          {progress !== null && <progress aria-label="Model download" value={progress} max={1} />}
           {notice && <p className="g2p-small">{notice}</p>}
           {error && (
             <p role="alert" className="g2p-error">

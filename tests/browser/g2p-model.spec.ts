@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+})
 
 test.use({ serviceWorkers: 'block' })
 import { readFile } from 'node:fs/promises'
@@ -45,6 +50,10 @@ test('real WASM model: full song, repeat reuse, cached rerun and raw parity', as
     0,
   )
   expect(modelRequests).toBe(2)
+  await expect(page.getByRole('progressbar', { name: 'Finglish reader download' })).toHaveAttribute(
+    'value',
+    '100',
+  )
   const raw = await page.locator('.g2p-raw code').allTextContents()
   expect(raw.every(Boolean)).toBe(true)
   const downloaded = page.waitForEvent('download')
@@ -72,6 +81,7 @@ test('real WASM model: full song, repeat reuse, cached rerun and raw parity', as
   await page.getByRole('button', { name: 'Read with Negara' }).click()
   await expect(page.getByRole('status')).toContainText('Finished.', { timeout: 60000 })
   expect(externalRequests).toEqual([])
+  await expect(page.locator('.model-download')).toHaveCount(0)
   expect(modelRequests).toBe(2) // Fresh document initializes sessions from cached weights.
 })
 

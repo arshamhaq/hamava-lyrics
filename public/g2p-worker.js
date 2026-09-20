@@ -16,6 +16,21 @@ const FILES = [
     19858779,
   ],
 ]
+const RUNTIME_SCRIPT_BYTES = 50139
+const RUNTIME_MODULE_BYTES = 24180 + 13479978
+const DOWNLOAD_TOTAL =
+  FILES.reduce((sum, file) => sum + file[2], 0) + RUNTIME_SCRIPT_BYTES + RUNTIME_MODULE_BYTES
+let assetBytes = 0,
+  downloading = false
+const downloadProgress = (partial = 0, complete = false) => {
+  if (downloading)
+    send('status', {
+      message: complete ? 'Ready to read lyrics.' : 'Downloading the Finglish reader…',
+      downloadLoaded: Math.min(DOWNLOAD_TOTAL, assetBytes + partial),
+      downloadTotal: DOWNLOAD_TOTAL,
+      downloadComplete: complete,
+    })
+}
 let activeJob = null
 const send = (type, data = {}) => postMessage({ type, jobId: activeJob?.id, ...data })
 const yieldTask = () => new Promise((resolve) => setTimeout(resolve, 0))
@@ -148,6 +163,8 @@ async function modelFile([name, hash, size]) {
     send('status', { message: `Reading cached ${name}…` })
     bytes = await cached.arrayBuffer()
   } else {
+    downloading = true
+    downloadProgress()
     send('status', { message: `Downloading ${name}…`, loaded: 0, total: size })
     const controller = new AbortController()
     let timeout = setTimeout(() => controller.abort(), 120000)
@@ -175,6 +192,7 @@ async function modelFile([name, hash, size]) {
         if (loaded > size) throw new Error('Model size did not match the pinned release.')
         chunks.push(value)
         if (performance.now() - lastNotice > 150) {
+          downloadProgress(loaded)
           send('status', { message: `Downloading ${name}…`, loaded, total: size })
           lastNotice = performance.now()
         }
@@ -212,6 +230,8 @@ async function modelFile([name, hash, size]) {
       send('notice', { message: 'Model caching is unavailable; this run still works.' })
     }
   }
+  assetBytes += size
+  downloadProgress()
   return bytes
 }
 async function generate(encoder, decoder, text, limit = 512) {
@@ -391,6 +411,8 @@ let encoder,
 const completed = new Map()
 async function ensureLoaded() {
   if (encoder && decoder) return true
+  assetBytes = 0
+  downloading = false
   send('status', { message: 'Loading browser CPU runtime…', backend: 'wasm' })
   if (!runtimeLoaded) {
     try {
@@ -405,14 +427,18 @@ async function ensureLoaded() {
     ort.env.wasm.wasmPaths = RUNTIME
     runtimeLoaded = true
   }
+  assetBytes += RUNTIME_SCRIPT_BYTES
   try {
     const options = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' }
     const encoderBytes = await modelFile(FILES[0])
     send('status', { message: 'Preparing encoder…' })
     encoder = await ort.InferenceSession.create(encoderBytes, options)
+    assetBytes += RUNTIME_MODULE_BYTES
+    downloadProgress()
     const decoderBytes = await modelFile(FILES[1])
     send('status', { message: 'Preparing decoder…' })
     decoder = await ort.InferenceSession.create(decoderBytes, options)
+    downloadProgress(0, true)
   } catch (error) {
     await encoder?.release()
     encoder = null
