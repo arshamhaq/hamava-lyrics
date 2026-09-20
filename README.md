@@ -7,7 +7,27 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current update: Monge homepage demo (v0.7.7)
+## Current fix: confirmed Monge guitar-version lyrics (v0.7.8)
+
+The owner confirmed the guitar version matches the supplied recording, including
+“تو او چیشای خُوِت، سنبل می کارُم” at 1:46.89. The demo now uses LRCLIB
+record **22122125**, **Monge (guitar Version)**: 20 sung lines with manually
+prepared Finglish and all original timestamps. Empty markers at 1:22.56 and
+2:21.99 preserve the instrumental break and outro. Audio, embedded cover and
+actual playback duration stay unchanged.
+
+The previous 154-second entry had different later verses. Matching the song's
+name and duration was insufficient; the earlier player tests validated playback
+and supplied timestamps, not the recording's sung content.
+
+Verified: production typecheck/build, 45 unit tests and 22 desktop/mobile
+browser checks. The playback regression now checks the confirmed later verse
+at 1:47, the following passage at 2:05, and disabled current-line copying during
+the outro. All 22 source timestamps (20 lyrics, two empty markers) match LRCLIB.
+
+Deploy with `npm run deploy:token`, reload, and confirm **v0.7.8**.
+
+## Previous update: Monge homepage demo (v0.7.7; lyric source corrected above)
 
 Replaced the Googoosh demo with the owner-supplied
 `C:\Users\Arsham\Desktop\monge.mp3`: **Monge — Heydoo Hedayati**.
