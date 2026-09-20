@@ -1,18 +1,28 @@
+import { withDeadline } from '../../shared/deadline'
 import type { SongHit, SongText, SearchResult } from '../../shared/search'
 import type { ReadingLine } from '../components/LyricRows'
 export async function api<T>(path: string, signal: AbortSignal): Promise<T> {
-  const response = await fetch(path, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(25000)]),
-  })
-  const data = await response.json()
-  if (!response.ok) {
-    const wait = response.headers.get('Retry-After')
-    throw new Error(
-      (data.error || 'Lyrics could not load. Please retry.') +
-        (wait ? ` Wait ${wait} seconds.` : ''),
-    )
-  }
-  return data
+  return withDeadline(
+    async (signal) => {
+      const response = await fetch(path, { signal, cache: 'no-store' })
+      const type = response.headers.get('content-type') || ''
+      if (!type.includes('application/json'))
+        throw new Error(
+          'Hamava returned an unexpected response. Check your connection or VPN, then retry.',
+        )
+      const data = await response.json()
+      if (!response.ok) {
+        const wait = response.headers.get('Retry-After')
+        throw new Error(
+          (data.error || 'Lyrics could not load. Please retry.') +
+            (wait ? ` Wait ${wait} seconds.` : ''),
+        )
+      }
+      return data
+    },
+    signal,
+    path.startsWith('/api/lyrics-health') ? 8000 : 15000,
+  )
 }
 const searchCache = new Map<string, SearchResult>()
 export async function search(query: string, signal: AbortSignal) {

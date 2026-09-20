@@ -11,7 +11,7 @@ async function localConnectivity(
   next: () => void,
 ) {
   const pathname = request.url?.split('?')[0]
-  if (pathname === '/api/search' || pathname === '/api/lyrics') {
+  if (['/api/search', '/api/lyrics', '/api/lyrics-health'].includes(pathname || '')) {
     const controller = new AbortController()
     request.on('aborted', () => controller.abort())
     const result = await searchApi(

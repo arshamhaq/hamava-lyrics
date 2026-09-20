@@ -1,3 +1,4 @@
+import { withDeadline } from '../shared/deadline'
 import {
   normalizeQuery,
   aliasQuery,
@@ -18,26 +19,23 @@ class ProviderError extends Error {
   }
 }
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-let queue = Promise.resolve()
-let nextCall = 0
 const cooldowns = new Map<string, number>()
 async function providerJson(url: string, signal: AbortSignal): Promise<any> {
-  // Serialize LRCLIB calls within this isolate, including broadened retries.
+  // All live I/O belongs to this request. Only plain cooldown/cache data is shared.
   const host = new URL(url).host
-  const run = async () => {
-    signal.throwIfAborted()
-    const wait = (cooldowns.get(host) || 0) - Date.now()
-    if (wait > 0)
-      throw new ProviderError(
-        'The lyrics provider is busy. Please try again later.',
-        429,
-        String(Math.ceil(wait / 1000)),
-      )
-    if (host === 'lrclib.net') await pause(Math.max(0, nextCall - Date.now()))
-    signal.throwIfAborted()
-    try {
+  return withDeadline(
+    async (signal) => {
+      signal.throwIfAborted()
+      const wait = (cooldowns.get(host) || 0) - Date.now()
+      if (wait > 0)
+        throw new ProviderError(
+          'The lyrics provider is busy. Please try again later.',
+          429,
+          String(Math.ceil(wait / 1000)),
+        )
+      signal.throwIfAborted()
       const response = await fetch(url, {
-        signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
+        signal,
         headers: {
           'User-Agent': 'Hamava/0.7 (https://hamava-lyrics.arshamhaqiqat.workers.dev)',
           Accept: 'application/json',
@@ -84,18 +82,12 @@ async function providerJson(url: string, signal: AbortSignal): Promise<any> {
         offset += chunk.length
       }
       return JSON.parse(new TextDecoder().decode(bytes))
-    } finally {
-      if (host === 'lrclib.net') nextCall = Date.now() + 250
-    }
-  }
-  if (host !== 'lrclib.net') return run()
-  const pending = queue.then(run)
-  queue = pending.then(
-    () => {},
-    () => {},
+    },
+    signal,
+    5000,
   )
-  return pending
 }
+
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
 const duration = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null)
 const persian = (v: string) =>
@@ -113,7 +105,11 @@ export function plainText(record: any) {
 export async function searchSongs(query: string, signal: AbortSignal): Promise<SearchResult> {
   const hits: SongHit[] = []
   let notice = ''
+  let first = true
   for (const variant of queryVariants(query)) {
+    if (!first) await pause(250)
+    first = false
+    signal.throwIfAborted()
     try {
       const data = await providerJson(
         `https://lrclib.net/api/search?q=${encodeURIComponent(variant)}`,
@@ -249,17 +245,44 @@ export async function searchApi(request: Request): Promise<Response> {
         throw new ProviderError('Search with 2–120 characters.', 400)
       url.search = new URLSearchParams({ q }).toString()
     }
+    if (url.pathname === '/api/lyrics-health') {
+      const checkedAt = Date.now()
+      try {
+        const data = await providerJson(
+          'https://lrclib.net/api/search?q=del%20bordi',
+          request.signal,
+        )
+        if (!Array.isArray(data)) throw new Error('Invalid LRCLIB response')
+        return Response.json(
+          { reachable: true, checkedAt, elapsedMs: Date.now() - checkedAt },
+          { headers },
+        )
+      } catch (error) {
+        return Response.json(
+          {
+            reachable: false,
+            checkedAt,
+            reason: error instanceof ProviderError && error.status === 429 ? 'busy' : 'unavailable',
+            retryAfter: error instanceof ProviderError ? error.retryAfter : undefined,
+          },
+          { headers },
+        )
+      }
+    }
     const key = `${url.pathname}${url.search}`
     const cached = memory.get(key)
     if (cached && cached.expires > Date.now())
       return new Response(cached.body, {
         headers: { ...headers, 'Content-Type': 'application/json' },
       })
-    const signal = AbortSignal.any([request.signal, AbortSignal.timeout(22000)])
-    const result =
-      url.pathname === '/api/search'
-        ? await searchSongs(url.searchParams.get('q')!, signal)
-        : await loadSong(url.searchParams, signal)
+    const result = await withDeadline<SearchResult | SongText>(
+      (signal) =>
+        url.pathname === '/api/search'
+          ? searchSongs(url.searchParams.get('q')!, signal)
+          : loadSong(url.searchParams, signal),
+      request.signal,
+      12000,
+    )
     const body = JSON.stringify(result)
     // Do not cache temporary provider errors or ambiguous empty results.
     if (!('songs' in result) || (result.songs.length && !result.notice)) {

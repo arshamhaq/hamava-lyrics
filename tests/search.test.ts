@@ -10,6 +10,7 @@ const hit = (id: string, title: string, artist = 'Mohammad-Reza Shajarian'): Son
   hasLyrics: true,
 })
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -186,4 +187,54 @@ it('stops retrying unreachable LRCLIB and returns a visible notice without cachi
   expect(remote).toHaveBeenCalledTimes(2) // one LRCLIB and one alternate, no keyword retry loop
   await searchApi(request)
   expect(remote).toHaveBeenCalledTimes(4)
+})
+
+it('one stalled request does not hold up the next search or health check', async () => {
+  vi.resetModules()
+  const { searchApi } = await import('../worker/search')
+  const controller = new AbortController()
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url.includes('q=stalled')) return new Promise<Response>(() => {})
+      return Response.json([
+        { id: 13708175, trackName: 'Del Bordi', artistName: 'Shajarian', plainLyrics: 'سلام' },
+      ])
+    }),
+  )
+  const stuck = searchApi(
+    new Request('https://app.test/api/search?q=stalled', { signal: controller.signal }),
+  )
+  const next = await searchApi(new Request('https://app.test/api/search?q=del%20bordi'))
+  expect((await next.json()).songs).toHaveLength(1)
+  const check = await searchApi(new Request('https://app.test/api/lyrics-health'))
+  expect((await check.json()).reachable).toBe(true)
+  expect(check.headers.get('cache-control')).toBe('no-store')
+  controller.abort()
+  await stuck
+})
+it('a health check validates the actual uncached LRCLIB response, including a body that never finishes', async () => {
+  vi.resetModules()
+  const { searchApi } = await import('../worker/search')
+  vi.useFakeTimers()
+  const remote = vi.fn(
+    async () =>
+      new Response(
+        new ReadableStream({
+          start(c) {
+            c.enqueue(new TextEncoder().encode('['))
+          },
+        }),
+        { headers: { 'content-type': 'application/json' } },
+      ),
+  )
+  vi.stubGlobal('fetch', remote)
+  const check = searchApi(new Request('https://app.test/api/lyrics-health'))
+  await vi.advanceTimersByTimeAsync(5001)
+  expect((await (await check).json()).reachable).toBe(false)
+  remote.mockImplementation(async () => Response.json([]))
+  expect(
+    (await (await searchApi(new Request('https://app.test/api/lyrics-health'))).json()).reachable,
+  ).toBe(true)
+  expect(remote).toHaveBeenCalledTimes(2)
 })
