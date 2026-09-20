@@ -7,7 +7,32 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current update: cleaner routes, verified alternate lyrics and download progress (v0.7.6)
+## Current update: Monge homepage demo (v0.7.7)
+
+Replaced the Googoosh demo with the owner-supplied
+`C:\Users\Arsham\Desktop\monge.mp3`: **Monge — Heydoo Hedayati**.
+The MP3 is copied unchanged to `public/audio/monge.mp3` (153.652 seconds,
+rounded to 2:34). Its embedded 435 × 435 JPEG is extracted unchanged to
+`public/monge-cover.jpg`.
+
+The demo pins the 23 sung lines from LRCLIB record **36521656** (154-second
+listing), with manually prepared Finglish preserving the dialect and repeated
+refrains. All sung-line timestamps are unchanged. The source's empty 2:35.19
+end marker exceeds the recording duration, so the last line ends with the MP3.
+There are no runtime lyric or model requests for this demo. Playback, copying,
+full lyrics, tips and the Search example remain as before.
+
+Verified: production typecheck/build, 45 unit tests and 26 desktop/mobile
+browser cases (22 player cases passed after the end-of-recording fix; four
+onboarding/cover cases passed in the initial run). The player clears the final
+highlight at the browser's actual media duration, including MP3 padding differences.
+The supplied audio is byte-for-byte unchanged and every sung-line timestamp was
+compared with the source. Physical-phone listening remains the owner's check.
+
+Deploy with `npm run deploy:token`, reload, and confirm **v0.7.7**.
+The earlier Googoosh milestones below describe previous releases.
+
+## Previous update: cleaner routes, verified alternate lyrics and download progress (v0.7.6)
 
 The homepage now has three actions: Spotify, Search a song and **Paste Persian
 lyrics**. `/paste` uses the same unsynced CPU reader, copying and saved-song flow
