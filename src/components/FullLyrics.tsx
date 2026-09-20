@@ -23,7 +23,8 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
   const [persian, setPersian] = useState(false)
   const [following, setFollowing] = useState(synced)
   const [message, setMessage] = useState('')
-  const active = synced ? activeLineAt(lines, player.positionMs) : null
+  const active =
+    synced && player.positionMs < player.durationMs ? activeLineAt(lines, player.positionMs) : null
   const center = () => {
     if (!reader.current) return
     const row = currentRow.current

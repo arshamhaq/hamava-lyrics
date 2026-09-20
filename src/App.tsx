@@ -218,8 +218,8 @@ export default function App() {
                 line or show the Persian text alongside it.
               </p>
               <p className="dialog-note">
-                The homepage demo plays the supplied Googoosh recording with prepared Finglish
-                lyrics. Search reads songs in Finglish. Spotify sync is coming next.
+                The homepage demo plays the supplied Heydoo Hedayati recording with prepared
+                Finglish lyrics. Search reads songs in Finglish. Spotify sync is coming next.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
                 Back to Hamava <ArrowRight size={16} />

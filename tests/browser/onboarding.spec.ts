@@ -47,8 +47,8 @@ test('compact toolbar fits narrow screens with the follow note above it', async 
   expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(2)
   const note = (await page.locator('.follow-guide').boundingBox())!
   expect(note.y + note.height).toBeLessThanOrEqual(boxes[0]!.y + 1)
-  await expect(page.locator('.record-sleeve')).toHaveAttribute('src', '/gharibe-ashena-cover.jpg')
-  await expect(page.locator('.record-sleeve')).toHaveJSProperty('naturalWidth', 450)
+  await expect(page.locator('.record-sleeve')).toHaveAttribute('src', '/monge-cover.jpg')
+  await expect(page.locator('.record-sleeve')).toHaveJSProperty('naturalWidth', 435)
   await expect(page.locator('[data-guide]')).toHaveCount(5)
   await expect(page.locator('[data-entrance="waiting"], [data-entrance="drawing"]')).toHaveCount(0)
   await page.locator('.demo-controls-note').scrollIntoViewIfNeeded()

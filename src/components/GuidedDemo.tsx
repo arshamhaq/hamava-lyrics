@@ -53,7 +53,7 @@ export function GuidedDemo() {
         ref={player.audioRef}
         src={demoTrack.audioSrc}
         preload="none"
-        aria-label="Gharibe Ashena demo audio"
+        aria-label={`${demoTrack.title} demo audio`}
       />
       <div ref={reveal} className="demo-reveal">
         <div className="demo-content">
@@ -67,7 +67,7 @@ export function GuidedDemo() {
         </div>
       </div>
       <p className="demo-source">
-        Googoosh · Gharibe Ashena{' '}
+        {demoTrack.artist} · {demoTrack.title}{' '}
         <span>
           Timing:{' '}
           <a href="https://lrclib.net" target="_blank" rel="noreferrer">

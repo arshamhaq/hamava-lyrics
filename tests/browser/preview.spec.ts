@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import { demoLines, demoTrack } from '../../src/data/demo'
+const sungLines = demoLines.filter((line) => line.finglish)
 test.beforeEach(async ({ context }) => {
   await context.route('**/api/lyrics-health', (r) =>
     r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
@@ -52,18 +54,16 @@ test('real MP3 drives play, pause, seeking, highlighted lyrics and copying', asy
   const seek = page.getByRole('slider', { name: 'Song position' })
   await seek.fill('87000')
   await expect.poll(() => audioTime(page)).toBeCloseTo(87, 1)
-  await expect(page.locator('.lyric-row[aria-current="true"]')).toContainText('Gharibe ashena')
+  await expect(page.locator('.lyric-row[aria-current="true"]')).toContainText('Biyo biyo biyo biyo')
   await page.getByRole('button', { name: 'Copy current line' }).click()
   await expect(page.getByRole('status')).toContainText('Line copied')
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'Gharibe ashena, dooset daram, bia',
-  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Biyo biyo biyo biyo')
   await seek.fill('45000')
-  await seek.fill('194000')
-  await expect.poll(() => audioTime(page)).toBeCloseTo(194, 1)
+  await seek.fill('114500')
+  await expect.poll(() => audioTime(page)).toBeCloseTo(114.5, 1)
   await page.getByRole('button', { name: 'Next line', exact: true }).click()
-  await expect.poll(() => audioTime(page)).toBeCloseTo(200.02, 1)
-  await expect(page.locator('.lyric-row[aria-current="true"]')).toContainText('Mishinam')
+  await expect.poll(() => audioTime(page)).toBeCloseTo(119.77, 1)
+  await expect(page.locator('.lyric-row[aria-current="true"]')).toContainText('Showe gapom')
   if (await page.getByRole('button', { name: 'Restart song' }).isVisible())
     await page.getByRole('button', { name: 'Restart song' }).click()
   else await seek.fill('0')
@@ -98,7 +98,7 @@ test('guided controls, local settings and focus remain usable', async ({ page })
   await page.getByRole('button', { name: 'Show tips', exact: true }).click()
   await expect(page.locator('.cover-guide')).toBeVisible()
   await page.getByRole('button', { name: 'Open full lyrics' }).click()
-  await expect(page.getByRole('dialog', { name: 'Gharibe Ashena' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: demoTrack.title })).toBeVisible()
   await page.getByRole('button', { name: 'Close full lyrics' }).click()
   await expect(page.locator('.record-panel')).toBeVisible()
 })
@@ -117,7 +117,7 @@ test('scrubbing commits on release and playback can restart after the recording 
   await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2, { steps: 5 })
   expect(await audioTime(page)).toBeCloseTo(87, 1)
   await page.mouse.up()
-  await expect.poll(() => audioTime(page)).toBeGreaterThan(140)
+  await expect.poll(() => audioTime(page)).toBeGreaterThan((demoTrack.durationMs / 1000) * 0.6)
   const duration = await page.locator('audio').evaluate((el: HTMLAudioElement) => el.duration)
   await seek.fill(String(Math.floor((duration - 0.2) * 10) * 100))
   await page.getByRole('button', { name: 'Play song', exact: true }).click()
@@ -125,6 +125,9 @@ test('scrubbing commits on release and playback can restart after the recording 
     .poll(() => page.locator('audio').evaluate((el: HTMLAudioElement) => el.ended))
     .toBe(true)
   await expect(page.getByRole('button', { name: 'Copy current line' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Open full lyrics' }).click()
+  await expect(page.getByRole('dialog').locator('[aria-current="true"]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Close full lyrics' }).click()
   await page.getByRole('button', { name: 'Play song', exact: true }).click()
   await expect.poll(() => audioTime(page)).toBeLessThan(3)
 })
@@ -230,11 +233,9 @@ test('inline copy buttons copy any sung line without changing playback', async (
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/#demo')
   const reader = page.locator('.reader-lines')
-  await expect(reader.getByRole('button', { name: /^Copy line / })).toHaveCount(28)
+  await expect(reader.getByRole('button', { name: /^Copy line / })).toHaveCount(sungLines.length)
   await reader.getByRole('button', { name: 'Copy line 1', exact: true }).click()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'To az shahre gharibe bi neshooni oomadi',
-  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(sungLines[0].finglish)
   await expect(reader.getByRole('button', { name: 'Copy line 1', exact: true })).toHaveAttribute(
     'data-copied',
     'true',
@@ -242,12 +243,12 @@ test('inline copy buttons copy any sung line without changing playback', async (
   expect(await audioTime(page)).toBe(0)
   await page.getByRole('slider', { name: 'Song position' }).fill('87000')
   await expect.poll(() => audioTime(page)).toBeCloseTo(87, 1)
-  const last = reader.getByRole('button', { name: 'Copy line 28', exact: true })
+  const last = reader.getByRole('button', { name: `Copy line ${sungLines.length}`, exact: true })
   const expected = await last.locator('..').locator('[lang="fa-Latn"]').innerText()
   await last.click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected)
   await expect(last).toHaveAttribute('data-copied', 'true')
-  await expect(reader.locator('[aria-current="true"]')).toContainText('Gharibe ashena')
+  await expect(reader.locator('[aria-current="true"]')).toContainText('Biyo biyo biyo biyo')
   expect(await audioTime(page)).toBeCloseTo(87, 1)
   await expect(page.getByRole('button', { name: 'Follow current line' })).toHaveAttribute(
     'aria-pressed',
@@ -255,7 +256,5 @@ test('inline copy buttons copy any sung line without changing playback', async (
   )
   await page.getByRole('button', { name: 'Follow current line' }).click()
   await page.getByRole('button', { name: 'Copy current line' }).click()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'Gharibe ashena, dooset daram, bia',
-  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Biyo biyo biyo biyo')
 })

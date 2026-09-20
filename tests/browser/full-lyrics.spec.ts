@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import { demoLines, demoTrack } from '../../src/data/demo'
+const sungLines = demoLines.filter((line) => line.finglish)
 test.beforeEach(async ({ context }) => {
   await context.route('**/api/lyrics-health', (r) =>
     r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
@@ -20,21 +22,19 @@ test('full lyrics fills the viewport, copies any line and restores the demo', as
   await opener.scrollIntoViewIfNeeded()
   const beforeScroll = await page.evaluate(() => scrollY)
   await opener.click()
-  const dialog = page.getByRole('dialog', { name: 'Gharibe Ashena' })
+  const dialog = page.getByRole('dialog', { name: demoTrack.title })
   await expect(dialog).toBeVisible()
   const box = (await dialog.boundingBox())!
   expect(box.x).toBe(0)
   expect(box.y).toBe(0)
   expect(box.width).toBe(page.viewportSize()!.width)
   expect(box.height).toBe(page.viewportSize()!.height)
-  await expect(dialog.locator('.full-lyric')).toHaveCount(28)
-  await expect(dialog.locator('[aria-current="true"]')).toContainText('Gharibe ashena')
-  await expect(dialog.getByRole('button', { name: /^Copy line / })).toHaveCount(28)
+  await expect(dialog.locator('.full-lyric')).toHaveCount(sungLines.length)
+  await expect(dialog.locator('[aria-current="true"]')).toContainText('Biyo biyo biyo biyo')
+  await expect(dialog.getByRole('button', { name: /^Copy line / })).toHaveCount(sungLines.length)
   await expect(dialog.getByRole('button', { name: 'Copy current line' })).toHaveCount(0)
   await dialog.getByRole('button', { name: 'Copy line 1', exact: true }).click()
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'To az shahre gharibe bi neshooni oomadi',
-  )
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(sungLines[0].finglish)
   await expect(dialog.getByRole('button', { name: 'Copy line 1', exact: true })).toHaveAttribute(
     'data-copied',
     'true',
@@ -44,14 +44,14 @@ test('full lyrics fills the viewport, copies any line and restores the demo', as
     .last()
     .locator('[lang="fa-Latn"]')
     .innerText()
-  await dialog.getByRole('button', { name: 'Copy line 28', exact: true }).click()
+  await dialog.getByRole('button', { name: `Copy line ${sungLines.length}`, exact: true }).click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(lastText)
-  await expect(dialog.getByRole('status')).toContainText('Line 28 copied')
+  await expect(dialog.getByRole('status')).toContainText(`Line ${sungLines.length} copied`)
   await expect(dialog.getByRole('button', { name: 'Copy line 1', exact: true })).toHaveAttribute(
     'data-copied',
     'false',
   )
-  await expect(dialog.locator('[aria-current="true"]')).toContainText('Gharibe ashena')
+  await expect(dialog.locator('[aria-current="true"]')).toContainText('Biyo biyo biyo biyo')
   expect(await audioTime(page)).toBeCloseTo(87, 1)
   await dialog.getByRole('button', { name: 'Follow current line' }).click()
   await dialog.getByRole('button', { name: 'Larger lyrics' }).click()
@@ -73,7 +73,7 @@ test('full lyrics fills the viewport, copies any line and restores the demo', as
   await expect.poll(centered).toBeLessThan(3)
   expect(await audioTime(page)).toBeCloseTo(87, 1)
   await dialog.getByRole('button', { name: 'Show Persian' }).click()
-  await expect(dialog.locator('.full-persian-line')).toHaveCount(28)
+  await expect(dialog.locator('.full-persian-line')).toHaveCount(sungLines.length)
   await expect.poll(centered).toBeLessThan(3)
   await page.screenshot({ path: `test-results/full-lyrics-${info.project.name}.png` })
   await page.keyboard.press('Escape')
@@ -88,12 +88,12 @@ test('full lyrics fills the viewport, copies any line and restores the demo', as
 
 test('playback continues through full lyrics and updates the current line', async ({ page }) => {
   await page.goto('/#demo')
-  await page.getByRole('slider', { name: 'Song position' }).fill('32000')
-  await expect.poll(() => audioTime(page)).toBeCloseTo(32, 1)
+  await page.getByRole('slider', { name: 'Song position' }).fill('23000')
+  await expect.poll(() => audioTime(page)).toBeCloseTo(23, 1)
   await page.getByRole('button', { name: 'Play song', exact: true }).click()
   await page.getByRole('button', { name: 'Open full lyrics' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Gharibe Ashena' })
-  await expect(dialog.locator('[aria-current="true"]')).toContainText('asbe sefide')
+  const dialog = page.getByRole('dialog', { name: demoTrack.title })
+  await expect(dialog.locator('[aria-current="true"]')).toContainText(sungLines[1].finglish)
   await dialog.getByRole('button', { name: 'Pause song' }).click()
   const paused = await audioTime(page)
   await page.waitForTimeout(200)
@@ -103,7 +103,7 @@ test('playback continues through full lyrics and updates the current line', asyn
   await page.getByRole('slider', { name: 'Song position' }).fill('0')
   await page.getByRole('button', { name: 'Open full lyrics' }).click()
   await expect(dialog.locator('[aria-current="true"]')).toHaveCount(0)
-  await expect(dialog.getByRole('button', { name: /^Copy line / })).toHaveCount(28)
+  await expect(dialog.getByRole('button', { name: /^Copy line / })).toHaveCount(sungLines.length)
   await expect(dialog.getByRole('button', { name: 'Copy line 1', exact: true })).toBeEnabled()
 })
 
@@ -112,7 +112,7 @@ test('a failed line copy shows feedback and can be retried without a current lyr
 }) => {
   await page.goto('/#demo')
   await page.getByRole('button', { name: 'Open full lyrics' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Gharibe Ashena' })
+  const dialog = page.getByRole('dialog', { name: demoTrack.title })
   await page.evaluate(() => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -141,6 +141,6 @@ test('a failed line copy shows feedback and can be retried without a current lyr
   await expect(copy).toHaveAttribute('data-copied', 'true')
   expect(
     await page.evaluate(() => (window as unknown as { copiedTestText: string }).copiedTestText),
-  ).toBe('To ba asbe sefide mehrabooni oomadi')
+  ).toBe(sungLines[1].finglish)
   await expect(dialog.locator('[aria-current="true"]')).toHaveCount(0)
 })

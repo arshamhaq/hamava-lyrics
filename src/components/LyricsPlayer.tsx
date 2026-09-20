@@ -36,7 +36,8 @@ export function LyricsPlayer({
   guidesReady = true,
   guided = false,
 }: Props) {
-  const active = activeLineAt(lines, player.positionMs)
+  const active =
+    player.positionMs < player.durationMs ? activeLineAt(lines, player.positionMs) : undefined
   const [showPersian, setShowPersian] = useState(true)
   const [largeText, setLargeText] = useState(false)
   const [fullOpen, setFullOpen] = useState(false)
