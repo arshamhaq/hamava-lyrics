@@ -4,7 +4,7 @@ Read README.md first: it is the implementation plan and milestone record.
 
 - This is a separate private project. Never add the unrelated Go repository.
 - The homepage now plays the owner-supplied MP3 as an explicit guided demo.
-  Spotify remains a placeholder. `/search` now provides unsynced lyrics; never imply Spotify is connected.
+  Spotify remains a placeholder. `/search` and `/paste` provide unsynced lyrics; never imply Spotify is connected.
 - Keep original LRCLIB timestamps outside AI input; validate and restore IDs.
 - Secrets never belong in VITE_* variables, browser code, commits, or logs.
 - Use Workers Static Assets and the bounded search/lyrics API. Inference stays on the browser CPU.
@@ -29,3 +29,10 @@ Read README.md first: it is the implementation plan and milestone record.
   Keep them out of Git and Workbox precaching; retain the legacy model cache keys.
 - Search must distinguish confirmed Persian lyrics from metadata-only suggestions.
   Keep provider retries bounded and respect 429; no sync controls in search readers.
+
+- Successful connectivity checks stay silent. Provider/app failures use the global
+  top banner on every route. Alternate lyrics.ovh results must have verified
+  nonempty Persian lyrics before appearing in suggestions.
+- `/paste` is the homepage's third main route; keep its reader shared with search.
+  First-time download progress includes both models and the runtime; 100% means
+  complete setup, never completion of just the first file.

@@ -1,5 +1,10 @@
 # Search reliability — v0.7.5
 
+**v0.7.6 UI update:** checks now run through the global connectivity notice on
+all routes. Success is silent; failures use the top banner with retry. The
+separate successful-LRCLIB card described below is historical. Backend deadlines
+and independent request handling are unchanged.
+
 ## Evidence and limits
 
 The owner saw intermittent search hangs in the iPhone home-screen app and desktop,

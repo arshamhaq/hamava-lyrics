@@ -7,7 +7,42 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current fix: independent searches and real connection checks (v0.7.5)
+## Current update: cleaner routes, verified alternate lyrics and download progress (v0.7.6)
+
+The homepage now has three actions: Spotify, Search a song and **Paste Persian
+lyrics**. `/paste` uses the same unsynced CPU reader, copying and saved-song flow
+without search controls. The form no longer sits at the bottom of Search.
+
+Successful connection checks are silent across the app. Actual network/provider
+failures use the shared top banner with retry; LRCLIB is still checked through
+Hamava. The search example and broadened matching remain unchanged.
+
+Alternate lyrics.ovh suggestions appear only after fetching nonempty Persian
+lyrics. At most four ranked alternate candidates are checked; verified text is
+cached briefly so selection does not repeat the lookup. Empty, whitespace-only,
+missing, non-Persian or failed alternate lyric responses are omitted. LRCLIB
+remains the first choice and request deadlines remain in effect.
+
+The homepage slogan, search subtitle, demo heart and Play/drag sentence are gone.
+A dashed outline marks demo playback controls, with one note explaining that
+these are for trying the demo and automatic Spotify sync is planned. The other
+handwritten tips, demo audio, timeline and copy controls remain.
+
+First-time model setup shows one green download bar for both ONNX files and the
+runtime packages (~46.8 MB combined). Model bytes update as they arrive; runtime
+bytes are credited when ready. The bar reaches 100% only when both model sessions
+are ready. Existing download URLs, cache keys and inference/fallback code remain;
+a cached model load does not show a fresh-download bar.
+
+Verified: 45 unit tests, production typecheck/build, and 62 relevant browser cases
+across desktop/mobile runs and the focused rerun. These cover real CPU model
+setup/cache reuse, download completion, search/paste, connectivity, demo playback,
+copying, mobile layout and the offline shell. Physical iPhone acceptance remains
+the owner's deployment check.
+
+Deploy with `npm run deploy:token`, reload, and confirm **v0.7.6**.
+
+## Previous fix: independent searches and real connection checks (v0.7.5)
 
 Search no longer shares a global live promise queue across requests. An old
 request cannot hold up a newer search or health check. Explicit deadlines cover

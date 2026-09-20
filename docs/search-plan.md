@@ -1,4 +1,4 @@
-# Search and unsynced reading — v0.7.5
+# Search and unsynced reading — v0.7.6
 
 Implemented at `/search`. The homepage's Search a song button opens this route.
 Spotify remains a placeholder. The Googoosh audio demo is unchanged.
@@ -7,11 +7,10 @@ Spotify remains a placeholder. The Googoosh audio demo is unchanged.
 
 - Debounce 400 ms after at least two characters. Up to 12 suggestions show song,
   artist, album/version, duration if known, provider and lyric availability.
-- The example button searches Kooh by Googoosh. A card above the input performs
-  a real uncached LRCLIB request through Hamava, on opening, search failure and
-  manual Check again. It distinguishes app/check failure from provider failure
-  and shows when the check succeeded. No timer-based reachability inference.
-  Retry search stays above the dropdown for errors and provider notices.
+- The example button searches Kooh by Googoosh. Actual uncached LRCLIB checks
+  run internally through Hamava across the app; successful checks stay silent.
+  Failed checks use the shared top banner on Home, Search and Paste. Retry search
+  stays above the dropdown for search errors/provider notices.
 - Accessible combobox: arrows, Enter, Escape, click/touch, stale-request
   cancellation, loading/error/empty feedback and retry. Query is remembered for
   the browser session. Different recordings remain distinct by provider ID.
@@ -26,7 +25,8 @@ Spotify remains a placeholder. The Googoosh audio demo is unchanged.
   button expands/collapses the list. Each saved song has a separate removal button
   that deletes its persisted record without deleting the shared model cache.
   A storage failure is reported instead of claiming a save.
-- Paste Persian text if search misses a song. The separate title-and-artist form
+- The homepage Paste Persian lyrics action opens `/paste`, a dedicated form
+  feeding the shared unsynced reader. Search has no inline paste form. The separate title-and-artist form
   was removed in v0.7.2; selecting a suggestion still uses provider fallback.
   MusicFa and Genius links open external searches to find text to paste; these
   are not claimed to be API integrations.
@@ -73,9 +73,11 @@ queries during the current page session. No inference happens while typing.
   needing a playback duration. Metadata-only records are labeled unconfirmed.
 - [lyrics.ovh API](https://github.com/NTag/lyrics.ovh#api): optional no-key lyrics
   fallback for a selected title/artist. When LRCLIB has no confirmed match, its
-  suggestion endpoint supplies Deezer catalog metadata, clearly labeled as
-  unconfirmed. The API documents aggregating several lyric websites, but this
-  does not establish useful Persian coverage.
+  suggestion endpoint supplies Deezer catalog metadata. Only up to four ranked
+  candidates with verified nonempty Persian lyrics appear. A bounded 40-entry,
+  five-minute text cache avoids a second lookup on selection. The API documents
+  aggregating several lyric websites, but this does not establish useful Persian
+  coverage.
 - MusicFa's WordPress API probe was unreachable from this machine. Radio Javan
   documents searching lyrics in its app, but no supported public lyrics API was
   verified. Genius's song API is not treated as a full-lyrics endpoint. No scraping
