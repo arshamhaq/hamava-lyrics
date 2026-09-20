@@ -19,6 +19,9 @@ const worker = `let timers=[]; onmessage=({data:d})=>{
  },200*(index+1))));
 }`
 test.beforeEach(async ({ context }) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
   await context.route('**/api/search?*', (r) =>
     r.fulfill({
       json: {
@@ -296,17 +299,17 @@ test('provider outage shows a persistent connection hint and allows a successful
   )
   await page.goto('/search')
   await page.getByRole('combobox').fill('connection test')
-  await expect(page.locator('.search-connection')).toContainText('connection or VPN')
+  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
   await expect(page.getByText('Searching songs…', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Retry search' }).click()
   await expect(page.getByRole('option')).toBeVisible()
-  await expect(page.locator('.search-connection')).toHaveCount(0)
+  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
   expect(calls).toBe(2)
 })
-test('slow search gives feedback and clearing the query removes it without stale results', async ({
+test('a stalled search ends with retry while a real connectivity check succeeds', async ({
   page,
   context,
-}) => {
+}, info) => {
   let release: () => void = () => {}
   const pending = new Promise<void>((r) => {
     release = r
@@ -315,11 +318,44 @@ test('slow search gives feedback and clearing the query removes it without stale
     await pending
     await r.fulfill({ json: { songs: [first] } }).catch(() => {})
   })
+  await page.clock.install()
   await page.goto('/search')
-  await page.getByRole('combobox').fill('slow connection')
-  await expect(page.locator('.search-connection')).toContainText('taking longer', { timeout: 8000 })
-  await page.getByRole('button', { name: 'Clear search' }).click()
+  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  await page.getByRole('combobox').fill('stalled search')
+  await page.clock.runFor(500)
+  await page.clock.fastForward(16000)
+  await expect(page.locator('.search-request-error')).toContainText('timed out')
+  await expect(page.getByText('Searching songs…', { exact: true })).toHaveCount(0)
+  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
+  const status = await page.locator('.lyrics-connection').boundingBox()
+  const input = await page.getByRole('combobox').boundingBox()
+  expect(status!.y + status!.height).toBeLessThan(input!.y)
   release()
-  await expect(page.locator('.search-connection')).toHaveCount(0)
-  await expect(page.getByRole('option')).toHaveCount(0)
+  await context.route('**/api/search?*', (r) => r.fulfill({ json: { songs: [first] } }))
+  await page.getByRole('button', { name: 'Retry search' }).click()
+  await page.clock.runFor(500)
+  await expect(page.getByRole('option')).toBeVisible()
+  await expect(page.locator('.search-request-error')).toHaveCount(0)
+  await page.screenshot({
+    path: `test-results/connection-${info.project.name}.png`,
+    fullPage: true,
+  })
+})
+test('connection check distinguishes provider failure from inability to reach Hamava and can be retried', async ({
+  page,
+  context,
+}) => {
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: false, checkedAt: Date.now(), reason: 'unavailable' } }),
+  )
+  await page.goto('/search')
+  await expect(page.locator('.lyrics-connection')).toContainText('Hamava is reachable, but LRCLIB')
+  await context.route('**/api/lyrics-health', (r) => r.abort())
+  await page.getByRole('button', { name: 'Check LRCLIB connection' }).click()
+  await expect(page.locator('.lyrics-connection')).toContainText('Couldn’t reach Hamava')
+  await context.route('**/api/lyrics-health', (r) =>
+    r.fulfill({ json: { reachable: true, checkedAt: Date.now() } }),
+  )
+  await page.getByRole('button', { name: 'Check LRCLIB connection' }).click()
+  await expect(page.locator('.lyrics-connection')).toContainText('LRCLIB reached')
 })

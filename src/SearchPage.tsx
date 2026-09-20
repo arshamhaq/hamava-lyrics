@@ -10,8 +10,8 @@ import {
   ExternalLink,
   Ellipsis,
   Trash2,
-  WifiOff,
 } from 'lucide-react'
+import { LyricsConnection } from './components/LyricsConnection'
 import { Brand } from './components/Brand'
 import { ThemeToggle } from './components/ThemeToggle'
 import { UpdateCheck } from './components/AppUpdates'
@@ -44,7 +44,6 @@ export default function SearchPage() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const [searching, setSearching] = useState(false)
-  const [slowSearch, setSlowSearch] = useState(false)
   const [searched, setSearched] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [notice, setNotice] = useState('')
@@ -67,7 +66,6 @@ export default function SearchPage() {
   const selection = useRef<AbortController | null>(null)
   useEffect(() => {
     const controller = new AbortController()
-    setSlowSearch(false)
     setHits([])
     setActive(-1)
     setSearchError('')
@@ -81,11 +79,8 @@ export default function SearchPage() {
       return
     }
     setSearching(true)
-    const slowTimer = setTimeout(() => setSlowSearch(true), 5000)
     const timer = setTimeout(async () => {
       try {
-        if (!navigator.onLine)
-          throw new Error('You’re offline. Open a saved song below, or reconnect to search.')
         const result = await search(query.trim(), controller.signal)
         if (controller.signal.aborted) return
         setHits(result.songs)
@@ -95,16 +90,13 @@ export default function SearchPage() {
         if (!controller.signal.aborted)
           setSearchError(e instanceof Error ? e.message : 'Search failed. Please retry.')
       } finally {
-        clearTimeout(slowTimer)
         if (!controller.signal.aborted) {
           setSearching(false)
-          setSlowSearch(false)
         }
       }
     }, 400)
     return () => {
       clearTimeout(timer)
-      clearTimeout(slowTimer)
       controller.abort()
     }
   }, [query, retrySearch])
@@ -299,6 +291,20 @@ export default function SearchPage() {
           </h1>
           <p>Listen anywhere. Read and copy any line.</p>
         </section>
+        <LyricsConnection failureKey={searchError || notice ? `${query}:${retrySearch}` : ''} />
+        {(searchError || notice) && (
+          <div className="search-request-error" role="alert">
+            {searchError || notice}
+            <button
+              onClick={() => {
+                setRetrySearch((v) => v + 1)
+                setOpen(true)
+              }}
+            >
+              Retry search
+            </button>
+          </div>
+        )}
         <div
           className="song-search"
           onBlur={(e) => {
@@ -370,7 +376,7 @@ export default function SearchPage() {
               <div role="status" className="search-feedback">
                 {searching
                   ? 'Searching songs…'
-                  : searchError ||
+                  : (searchError ? 'Search could not finish. See the message above.' : '') ||
                     notice ||
                     (hits.length
                       ? `${hits.length} matches`
@@ -409,11 +415,6 @@ export default function SearchPage() {
                   </div>
                 ))}
               </div>
-              {(searchError || notice) && (
-                <button className="search-retry" onClick={() => setRetrySearch((v) => v + 1)}>
-                  Retry search
-                </button>
-              )}
               {!searching && !hits.length && (
                 <div className="external-sources">
                   <span>You can find text elsewhere and paste it below:</span>
@@ -436,16 +437,6 @@ export default function SearchPage() {
             </div>
           )}
         </div>
-        {(slowSearch || searchError || notice) && (
-          <div className="search-connection" role="status">
-            <WifiOff size={17} aria-hidden="true" />
-            <span>
-              {slowSearch
-                ? 'Search is taking longer than usual. Check your connection or VPN.'
-                : 'Lyrics search may be unavailable. Check your connection or VPN, then retry.'}
-            </span>
-          </div>
-        )}
         <p className="search-hint">
           A few words are enough. Try{' '}
           <button
