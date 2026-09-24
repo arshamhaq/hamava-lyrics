@@ -7,7 +7,149 @@ PWA. Keep it as a milestone document until we choose to publish the source.
 Working name: **Hamava** (هم‌آوا). Repository suggestion: **finglish-lyrics**.
 Budget: $300 including labor and software; delivery target: one month.
 
-## Current fix: confirmed Monge guitar-version lyrics (v0.7.8)
+## Current milestone: Spotify sync (v0.8.0)
+
+Implemented `/spotify` and `/spotify/callback`. The owner still needs to register
+Hamava in Spotify's dashboard and perform the real-account/physical-iPhone check.
+No Spotify account, Client ID or credentials were available during implementation;
+automated OAuth/playback tests use controlled Spotify responses.
+
+### One-time Spotify setup — start here
+
+A **Spotify Developer app** is a dashboard registration for this website. You do
+not write or install another app. It provides the public Client ID that identifies
+Hamava to Spotify. Music will continue to play in the ordinary Spotify app.
+
+1. Open [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   and sign in using your Premium Spotify account. Use your own Spotify login
+   associated with your Premium Family membership; there is no shared family login.
+2. Create an app called **Hamava**. Suggested description: **Personal Persian
+   lyrics reader**. Set the website to
+   `https://hamava-lyrics.arshamhaqiqat.workers.dev/` and choose **Web API** if
+   asked which API/SDK you will use. The Web Playback SDK is not needed.
+3. Add these exact **Redirect URIs** in the app settings and save:
+
+   ```text
+   https://hamava-lyrics.arshamhaqiqat.workers.dev/spotify/callback
+   http://127.0.0.1:5173/spotify/callback
+   http://127.0.0.1:4173/spotify/callback
+   ```
+
+   The first is the deployed app; the others allow VS Code development/preview.
+   Spotify does not accept `localhost` as the callback hostname. Do not add a
+   trailing slash to `/spotify/callback`.
+4. In **User Management**, add the customer's Spotify account name/email and
+   any other account you will test with. Use the email attached to that Spotify
+   account, even if the person normally signs in through Google or Apple.
+   Development Mode requires a Premium app owner and allows up to five authorized
+   users; dashboard restrictions are independent of Hamava.
+5. Copy the **Client ID** from the app settings. In the VS Code terminal:
+
+   ```bash
+   cd /home/arsham/finglish-lyrics
+   npm run setup:spotify
+   ```
+
+   Paste the Client ID when prompted. **Do not use the Client Secret.** The command
+   preserves other environment settings and saves the public ID in ignored
+   `.env.local`. Restart `npm run dev` if it is already running.
+6. Deploy with the existing command:
+
+   ```bash
+   npm run deploy:token
+   ```
+
+   Confirm **v0.8.0**, open **Connect Spotify**, approve Spotify's permissions,
+   start a Persian song in Spotify, and return to Hamava. No new Cloudflare AI,
+   database, paid server or Spotify Client Secret is required by this implementation.
+
+Spotify's own login page supplies its available Google/Apple/email sign-in
+methods. Hamava never collects those passwords and does not implement a separate
+Google account system. `show_dialog=true` asks Spotify to show authorization again;
+if Spotify keeps selecting the wrong account, sign out/change account on Spotify's
+own page before reconnecting.
+
+### Subscription limitation in Spotify's current API
+
+Known `product: free`/`open` accounts get the requested warning and playback polling
+never starts. Known Premium accounts are labeled Premium. **New Development Mode
+apps no longer receive the profile's `product` field**, so a universal pre-playback
+Free/Premium check is not available. Missing data is displayed as unknown, never
+invented as Premium or Free. Hamava permits the authorized playback read and
+reports Spotify's `PREMIUM_REQUIRED`/403 response if it is refused. This means
+Hamava cannot independently guarantee Premium-only access when Spotify omits
+subscription information. Do not sell that check as guaranteed.
+
+Official references: [app registration](https://developer.spotify.com/documentation/web-api/concepts/apps),
+[Development Mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes),
+[removed profile fields and available endpoints](https://developer.spotify.com/documentation/web-api/references/changes/february-2026),
+[redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
+
+### Implemented behavior
+
+- Browser Authorization Code + PKCE (S256), random state, a ten-minute login
+  transaction, callback validation and URL cleanup. Tokens stay in sessionStorage
+  for the browser session, refresh automatically, and are removed on Disconnect.
+  A closed browser/PWA session may need login again. Temporary PKCE state is in
+  localStorage so another tab in the same browser can finish the callback.
+- Requests go directly to Spotify with bounded waits. `/me/player` supplies track,
+  cover, progress, pause state and control restrictions. Foreground polling runs
+  about every three seconds while playing/five while paused, with a local clock
+  between samples. Polling stops in the background, resamples on return, freezes
+  on errors and respects `Retry-After`; there is no promise of frame-exact sync.
+- The shared player supports seeking and play/pause on Spotify's active device.
+  Commands check track identity, respect device restrictions, and resample Spotify
+  afterward. No music is streamed or copied from Spotify into Hamava.
+- `/api/spotify-lyrics` receives public song metadata only. Exact LRCLIB lookup and
+  artist/title search run together, with a bounded broader title query if needed.
+  Title/artist aliases, album, arrangement (guitar/live/remix/etc.) and duration
+  rank candidates. A confident timed candidate is preferred; uncertain recordings
+  require selection. A Spotify ID is not treated as a LRCLIB ID.
+- **Wrong lyrics?** offers the remaining ranked choices (up to three when one is
+  selected), each labeled **Synced** or **Not synced**, or a clear no-options message.
+  Exact duplicate texts/timings are removed. A choice is remembered for that Spotify
+  track during the current page session.
+- Missing/malformed timings or incompatible recording lengths use the full untimed
+  reader: per-line copy, Persian toggle, Aa and fullscreen; no fake playhead or
+  current-line controls. Verified lyrics.ovh text is a final fallback when LRCLIB
+  yields no usable Persian candidates.
+- The existing single CPU engine converts progressively and reuses its model caches.
+  Original timestamps stay outside inference. Oversized source lines are split for
+  conversion and rejoined into the original timed row. Pending/failed lines stay
+  visible in Persian. Track/choice changes cancel obsolete matching and conversion.
+- Song matching and conversions have bounded in-page caches. Lyrics provider caches
+  remain short-lived; Spotify tokens never enter the Worker or these caches.
+  The homepage Monge demo, Search and Paste flows remain available.
+
+### Verification for this release
+
+Passed: 60 unit tests; a 64-case desktop/mobile regression run for Spotify, Search,
+Demo and full lyrics; an 18-case Spotify run including real shipped CPU inference
+in both layouts; production typecheck/build and Wrangler deployment dry run.
+The final callback/setup changes also received focused browser checks. The setup
+script was checked in an isolated folder and preserves existing environment settings.
+A real LRCLIB request for Monge (guitar Version) selected record **22122125** first
+and returned three alternative versions. No real Spotify account was accessed.
+
+### Owner's acceptance check after setup
+
+First try a desktop browser, then the actual iPhone home-screen app. Check login,
+returning from Spotify, forward/backward seeks in both apps, pause/resume, a track
+change, a song without timing, a wrong-lyrics alternative, and disconnect/reconnect.
+
+On iPhone, standalone PWA and Safari storage can be separated. If Spotify opens a
+separate browser and the callback cannot verify the login, start and finish the
+login in Safari and use Hamava there for the first test. A state mismatch is never
+bypassed. Installed-PWA OAuth behavior must be checked on the customer's phone;
+Chromium mobile emulation does not establish Safari acceptance.
+
+If Spotify reports 403, check that the app owner still has Premium and the exact
+customer account is in User Management. If it reports no active device, start a
+song in Spotify first. If it reports 429, wait; repeatedly pressing Retry does not
+bypass the provider's cooldown. No free hosting or third-party API has guaranteed
+unlimited availability.
+
+## Previous fix: confirmed Monge guitar-version lyrics (v0.7.8)
 
 The owner confirmed the guitar version matches the supplied recording, including
 “تو او چیشای خُوِت، سنبل می کارُم” at 1:46.89. The demo now uses LRCLIB
