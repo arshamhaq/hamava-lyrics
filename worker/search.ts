@@ -1,3 +1,4 @@
+import { baseTitle, rankChoices, type TrackQuery, type LyricMatches } from '../shared/spotify'
 import { withDeadline } from '../shared/deadline'
 import {
   normalizeQuery,
@@ -261,6 +262,88 @@ export async function loadSong(params: URLSearchParams, signal: AbortSignal): Pr
   if (lyrics.length > 100_000) throw new ProviderError('These lyrics are too long to load.', 422)
   return { title, artist, album, duration: seconds, text: lyrics, source, sourceUrl }
 }
+export async function matchSpotifyLyrics(
+  params: URLSearchParams,
+  signal: AbortSignal,
+): Promise<LyricMatches> {
+  const track: TrackQuery = {
+    title: (params.get('title') || '').trim(),
+    artist: (params.get('artist') || '').trim(),
+    album: (params.get('album') || '').trim(),
+    durationMs: Number(params.get('durationMs')),
+  }
+  if (
+    !track.title ||
+    !track.artist ||
+    [track.title, track.artist, track.album].some((s) => s.length > 200) ||
+    !Number.isFinite(track.durationMs) ||
+    track.durationMs < 1000 ||
+    track.durationMs > 1800000
+  )
+    throw new ProviderError('Invalid Spotify track metadata.', 400)
+  const exact = new URLSearchParams({
+    track_name: track.title,
+    artist_name: track.artist,
+    album_name: track.album,
+    duration: String(track.durationMs / 1000),
+  })
+  const search = new URLSearchParams({
+    track_name: baseTitle(track.title),
+    artist_name: track.artist,
+  })
+  const results = await Promise.allSettled([
+    providerJson(`https://lrclib.net/api/get?${exact}`, signal),
+    providerJson(`https://lrclib.net/api/search?${search}`, signal),
+  ])
+  signal.throwIfAborted()
+  const records: any[] = []
+  let reached = false
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      reached = true
+      records.push(...(Array.isArray(result.value) ? result.value.slice(0, 100) : [result.value]))
+    }
+  }
+  let choices = rankChoices(records, track)
+  // A title-only query allows aliases/extra artist credits; never rank on title alone.
+  if (!choices.length && reached) {
+    try {
+      const broad = await providerJson(
+        `https://lrclib.net/api/search?q=${encodeURIComponent(baseTitle(track.title))}`,
+        signal,
+      )
+      if (Array.isArray(broad)) choices = rankChoices(broad.slice(0, 100), track)
+    } catch {
+      signal.throwIfAborted()
+    }
+  }
+  if (!choices.length) {
+    try {
+      const lyrics = await alternateLyrics(track.title, track.artist, signal)
+      choices = [
+        {
+          id: `ovh:${track.artist}:${track.title}`,
+          ...track,
+          duration: track.durationMs / 1000,
+          text: lyrics,
+          source: 'lyrics.ovh',
+          sourceUrl: 'https://lyrics.ovh/',
+          timedLines: null,
+          score: 0,
+          closeMatch: true,
+        },
+      ]
+    } catch {
+      signal.throwIfAborted()
+    }
+  }
+  if (!reached && !choices.length)
+    throw new ProviderError('Lyrics services could not be reached. Please retry.')
+  return {
+    choices,
+    ...(!reached ? { notice: 'Timed lyrics could not be checked. Showing available text.' } : {}),
+  }
+}
 const memory = new Map<string, { expires: number; body: string }>()
 export async function searchApi(request: Request): Promise<Response> {
   const url = new URL(request.url)
@@ -307,17 +390,23 @@ export async function searchApi(request: Request): Promise<Response> {
       return new Response(cached.body, {
         headers: { ...headers, 'Content-Type': 'application/json' },
       })
-    const result = await withDeadline<SearchResult | SongText>(
+    const result = await withDeadline<SearchResult | SongText | LyricMatches>(
       (signal) =>
-        url.pathname === '/api/search'
-          ? searchSongs(url.searchParams.get('q')!, signal)
-          : loadSong(url.searchParams, signal),
+        url.pathname === '/api/spotify-lyrics'
+          ? matchSpotifyLyrics(url.searchParams, signal)
+          : url.pathname === '/api/search'
+            ? searchSongs(url.searchParams.get('q')!, signal)
+            : loadSong(url.searchParams, signal),
       request.signal,
       12000,
     )
     const body = JSON.stringify(result)
     // Do not cache temporary provider errors or ambiguous empty results.
-    if (!('songs' in result) || (result.songs.length && !result.notice)) {
+    if (
+      'choices' in result
+        ? result.choices.length && !result.notice
+        : !('songs' in result) || (result.songs.length && !result.notice)
+    ) {
       if (memory.size >= 100) memory.delete(memory.keys().next().value!)
       memory.set(key, { body, expires: Date.now() + 300_000 })
     }

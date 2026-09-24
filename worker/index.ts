@@ -16,7 +16,11 @@ export default {
       response.headers.set('Cache-Control', 'no-store')
       return response
     }
-    if (['/api/search', '/api/lyrics', '/api/lyrics-health'].includes(url.pathname))
+    if (
+      ['/api/search', '/api/lyrics', '/api/lyrics-health', '/api/spotify-lyrics'].includes(
+        url.pathname,
+      )
+    )
       return searchApi(request)
     if (['/api/song', '/api/batch'].includes(url.pathname))
       return json(
