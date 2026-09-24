@@ -3,6 +3,8 @@ export interface LyricLine {
   startMs: number
   endMs: number
   finglish: string
+  error?: string
+  approximate?: boolean
   persian: string
 }
 

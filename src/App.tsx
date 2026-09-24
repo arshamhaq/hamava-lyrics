@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ArrowDown,
   ArrowDownToLine,
-  ArrowLeft,
   ArrowRight,
   Check,
   Search,
@@ -25,8 +24,6 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogKind>(null)
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const mode =
-    location.pathname === '/spotify' ? 'spotify' : location.pathname === '/search' ? 'search' : null
   useEffect(() => {
     const onInstall = (event: Event) => {
       event.preventDefault()
@@ -50,8 +47,8 @@ export default function App() {
   }
   return (
     <div className="app">
-      <a className="skip-link" href={mode ? '#route-title' : '#demo'}>
-        Skip to {mode ? 'content' : 'demo'}
+      <a className="skip-link" href="#demo">
+        Skip to demo
       </a>
       <header className="site-header">
         <Brand />
@@ -64,14 +61,19 @@ export default function App() {
         </div>
       </header>
       <main className="main-shell">
-        {mode ? (
-          <section className="mode-placeholder" aria-labelledby="route-title">
-            <a className="back-link" href="/">
-              <ArrowLeft size={16} />
-              Home
-            </a>
-            <div className={`mode-symbol mode-${mode}`}>
-              {mode === 'spotify' ? (
+        <section className="welcome" aria-labelledby="page-title">
+          <div className="intro">
+            <div className="intro-heading">
+              <span className="eyebrow">هم‌آوا / HAMAVA</span>
+              <h1 id="page-title">
+                Lyrics, in <em>Finglish.</em>
+              </h1>
+            </div>
+            <ScriptLens />
+          </div>
+          <div className="mode-choices" aria-label="Choose how to listen">
+            <a className="mode-card sync-card" href="/spotify">
+              <span className="mode-icon">
                 <img
                   className="spotify-mark"
                   src="/spotify-icon-black.png"
@@ -79,89 +81,44 @@ export default function App() {
                   height="34"
                   alt=""
                 />
-              ) : (
-                <Search size={28} />
-              )}
-            </div>
-            <span className="preview-pill">Coming next</span>
-            <h1 id="route-title">{mode === 'spotify' ? 'Spotify sync' : 'Search a song'}</h1>
-            <p>
-              {mode === 'spotify'
-                ? 'Connect Spotify to follow the song you’re playing, with lyrics that move automatically.'
-                : 'Find the lyrics, listen in any music app, and move the lyrics clock to match what you hear.'}
-            </p>
-            <p className="mode-note">
-              {mode === 'spotify'
-                ? 'Spotify login and playback controls aren’t connected yet.'
-                : 'Song search and the manual lyrics clock aren’t connected yet.'}{' '}
-              Try the working audio demo while we build this route.
-            </p>
-            <a className="primary-button" href="/#demo">
-              Try the demo <ArrowRight size={17} />
+              </span>
+              <span className="mode-card-text">
+                <small>AUTOMATIC SYNC</small>
+                <strong>Connect Spotify</strong>
+                <span>Follow what’s playing on Spotify.</span>
+              </span>
+              <ArrowRight size={22} />
             </a>
-          </section>
-        ) : (
-          <>
-            <section className="welcome" aria-labelledby="page-title">
-              <div className="intro">
-                <div className="intro-heading">
-                  <span className="eyebrow">هم‌آوا / HAMAVA</span>
-                  <h1 id="page-title">
-                    Lyrics, in <em>Finglish.</em>
-                  </h1>
-                </div>
-                <ScriptLens />
-              </div>
-              <div className="mode-choices" aria-label="Choose how to listen">
-                <a className="mode-card sync-card" href="/spotify">
-                  <span className="mode-icon">
-                    <img
-                      className="spotify-mark"
-                      src="/spotify-icon-black.png"
-                      width="34"
-                      height="34"
-                      alt=""
-                    />
-                  </span>
-                  <span className="mode-card-text">
-                    <small>AUTOMATIC SYNC</small>
-                    <strong>Connect Spotify</strong>
-                    <span>Follow what’s playing on Spotify.</span>
-                  </span>
-                  <ArrowRight size={22} />
-                </a>
-                <a className="mode-card search-card" href="/search">
-                  <span className="mode-icon">
-                    <Search size={25} />
-                  </span>
-                  <span className="mode-card-text">
-                    <small>READ & COPY</small>
-                    <strong>Search a song</strong>
-                    <span>Find the words. Copy any line.</span>
-                  </span>
-                  <ArrowRight size={22} />
-                </a>
-                <a className="mode-card paste-card" href="/paste">
-                  <span className="mode-icon">
-                    <ClipboardPaste size={25} />
-                  </span>
-                  <span className="mode-card-text">
-                    <small>YOUR LYRICS</small>
-                    <strong>Paste Persian lyrics</strong>
-                    <span>Turn your own text into Finglish.</span>
-                  </span>
-                  <ArrowRight size={22} />
-                </a>
-              </div>
-              <a className="demo-invitation" href="#demo">
-                <span>First time? Try the player below</span>
-                <ArrowDown size={18} />
-                <small>A real song, with a few pointers</small>
-              </a>
-            </section>
-            <GuidedDemo />
-          </>
-        )}
+            <a className="mode-card search-card" href="/search">
+              <span className="mode-icon">
+                <Search size={25} />
+              </span>
+              <span className="mode-card-text">
+                <small>READ & COPY</small>
+                <strong>Search a song</strong>
+                <span>Find the words. Copy any line.</span>
+              </span>
+              <ArrowRight size={22} />
+            </a>
+            <a className="mode-card paste-card" href="/paste">
+              <span className="mode-icon">
+                <ClipboardPaste size={25} />
+              </span>
+              <span className="mode-card-text">
+                <small>YOUR LYRICS</small>
+                <strong>Paste Persian lyrics</strong>
+                <span>Turn your own text into Finglish.</span>
+              </span>
+              <ArrowRight size={22} />
+            </a>
+          </div>
+          <a className="demo-invitation" href="#demo">
+            <span>First time? Try the player below</span>
+            <ArrowDown size={18} />
+            <small>A real song, with a few pointers</small>
+          </a>
+        </section>
+        <GuidedDemo />
       </main>
       <footer className="site-footer">
         <span lang="fa">هم‌آوا</span>
@@ -219,7 +176,8 @@ export default function App() {
               </p>
               <p className="dialog-note">
                 The homepage demo plays the supplied Heydoo Hedayati recording with prepared
-                Finglish lyrics. Search reads songs in Finglish. Spotify sync is coming next.
+                Finglish lyrics. Search reads songs in Finglish. Spotify mode follows your current
+                song.
               </p>
               <button className="primary-button" onClick={() => setDialog(null)}>
                 Back to Hamava <ArrowRight size={16} />

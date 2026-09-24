@@ -37,7 +37,9 @@ export function LyricsPlayer({
   guided = false,
 }: Props) {
   const active =
-    player.positionMs < player.durationMs ? activeLineAt(lines, player.positionMs) : undefined
+    player.syncAvailable !== false && player.positionMs < player.durationMs
+      ? activeLineAt(lines, player.positionMs)
+      : undefined
   const [showPersian, setShowPersian] = useState(true)
   const [largeText, setLargeText] = useState(false)
   const [fullOpen, setFullOpen] = useState(false)
@@ -64,7 +66,7 @@ export function LyricsPlayer({
   }
   useLayoutEffect(() => {
     if (following) centerCurrentLine()
-  }, [active?.id, following, largeText, showPersian, fullOpen])
+  }, [active?.id, following, largeText, showPersian, fullOpen, lines])
   useEffect(() => {
     setCopied(false)
   }, [active?.id])
@@ -93,7 +95,7 @@ export function LyricsPlayer({
       setMessage('Copy is unavailable. Select the line and copy it manually.')
     }
   }
-  const vocalLines = lines.filter((line) => line.finglish)
+  const vocalLines = lines.filter((line) => line.finglish || line.persian)
   const lineNumbers = new Map(vocalLines.map((line, index) => [line.id, index + 1]))
   const previous = [...vocalLines].reverse().find((line) => line.startMs < player.positionMs - 500)
   const next = vocalLines.find((line) => line.startMs > player.positionMs + 100)
@@ -170,12 +172,18 @@ export function LyricsPlayer({
           <div className="reader-status">
             <span>
               {player.buffering
-                ? 'Loading audio…'
-                : player.positionMs >= player.durationMs
-                  ? 'End of song'
-                  : instrumental
-                    ? 'Instrumental'
-                    : 'Current verse'}
+                ? 'Updating playback…'
+                : player.syncAvailable === false
+                  ? 'Waiting for Spotify…'
+                  : active?.persian && !active.finglish
+                    ? active.error
+                      ? 'Original lyrics'
+                      : 'Preparing Finglish…'
+                    : player.positionMs >= player.durationMs
+                      ? 'End of song'
+                      : instrumental
+                        ? 'Instrumental'
+                        : 'Current verse'}
             </span>
             {player.positionMs < (vocalLines[0]?.startMs ?? 0) && (
               <button className="skip-intro" onClick={() => player.seek(vocalLines[0].startMs)}>
@@ -208,7 +216,7 @@ export function LyricsPlayer({
               <div
                 key={line.id}
                 ref={line.id === active?.id ? activeRow : undefined}
-                className={`lyric-row ${line.id === active?.id ? 'active' : ''} ${!line.finglish ? 'instrumental-row' : ''}`}
+                className={`lyric-row ${line.id === active?.id ? 'active' : ''} ${!line.finglish && !line.persian ? 'instrumental-row' : ''}`}
                 aria-current={line.id === active?.id ? 'true' : undefined}
               >
                 {line.finglish ? (
@@ -229,10 +237,22 @@ export function LyricsPlayer({
                   </span>
                 )}
                 <div className="lyric-text">
-                  <p id={`lyric-line-${line.id}`} lang={line.finglish ? 'fa-Latn' : 'en'}>
-                    {line.finglish || 'Instrumental'}
+                  {line.error && (
+                    <span className="lyric-conversion-error">
+                      Finglish unavailable · original kept
+                    </span>
+                  )}
+                  {line.approximate && (
+                    <span className="lyric-approximate">Approximate · check the Persian</span>
+                  )}
+                  <p
+                    id={`lyric-line-${line.id}`}
+                    lang={line.finglish ? 'fa-Latn' : line.persian ? 'fa' : 'en'}
+                    dir={!line.finglish && line.persian ? 'rtl' : undefined}
+                  >
+                    {line.finglish || line.persian || 'Instrumental'}
                   </p>
-                  {showPersian && line.persian && (
+                  {(showPersian || line.approximate) && line.persian && line.finglish && (
                     <span lang="fa" dir="rtl">
                       {line.persian}
                     </span>

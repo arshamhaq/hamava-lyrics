@@ -12,6 +12,7 @@ import { ConnectivityNotice } from './components/ConnectivityNotice'
 import './styles.css'
 import './experience.css'
 
+const SpotifyPage = lazy(() => import('./SpotifyPage'))
 const SearchPage = React.lazy(() => import('./SearchPage'))
 const G2PTest = lazy(() => import('./G2PTest'))
 
@@ -19,7 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppUpdates>
       <ConnectivityNotice />
-      {['/search', '/paste'].includes(location.pathname) ? (
+      {['/spotify', '/spotify/callback'].includes(location.pathname) ? (
+        <Suspense fallback={<p style={{ padding: 32 }}>Opening Spotify…</p>}>
+          <SpotifyPage />
+        </Suspense>
+      ) : ['/search', '/paste'].includes(location.pathname) ? (
         <Suspense fallback={<p style={{ padding: 32 }}>Opening search…</p>}>
           <SearchPage />
         </Suspense>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 export interface PlayerController {
+  syncAvailable?: boolean
   positionMs: number
   durationMs: number
   playing: boolean

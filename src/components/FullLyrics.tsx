@@ -24,7 +24,9 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
   const [following, setFollowing] = useState(synced)
   const [message, setMessage] = useState('')
   const active =
-    synced && player.positionMs < player.durationMs ? activeLineAt(lines, player.positionMs) : null
+    synced && player.syncAvailable !== false && player.positionMs < player.durationMs
+      ? activeLineAt(lines, player.positionMs)
+      : null
   const center = () => {
     if (!reader.current) return
     const row = currentRow.current
@@ -64,7 +66,7 @@ export function FullLyrics({ track, lines, player, synced, onClose }: Props) {
   }, [])
   useLayoutEffect(() => {
     if (synced && following) center()
-  }, [active?.id, large, persian, following, synced])
+  }, [active?.id, large, persian, following, synced, lines])
   useEffect(() => {
     if (!following || !synced || !reader.current) return
     const observer = new ResizeObserver(center)

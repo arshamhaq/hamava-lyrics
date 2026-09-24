@@ -31,7 +31,7 @@ test('landing explains both routes and the comparison without fetching audio or 
   await page.getByRole('link', { name: /Connect Spotify/ }).click()
   await expect(page).toHaveURL(/\/spotify$/)
   await expect(page.getByRole('heading', { name: 'Spotify sync' })).toBeVisible()
-  await expect(page.getByText('Coming next', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Connect Spotify', exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Home', exact: true }).click()
   await page.getByRole('link', { name: /Search a song/ }).click()
   await expect(page).toHaveURL(/\/search$/)
