@@ -32,6 +32,17 @@ Timed lyrics are preferred in Spotify mode. If timing is unavailable, Hamava
 shows the full untimed text instead. **Wrong lyrics?** offers alternative matches
 when available, labelled Synced or Not synced.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home-desktop.webp" alt="Hamava home screen on desktop, with Spotify, song search, paste, and the guided demo" width="100%" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/home-mobile.webp" alt="Hamava home screen in a phone layout" width="36%" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/search-results.webp" alt="Live LRCLIB suggestions for a Del Bordi search" width="62%" />
+</p>
+
 ## How it works
 
 ```text
