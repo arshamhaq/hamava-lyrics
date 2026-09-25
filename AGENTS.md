@@ -1,12 +1,18 @@
 # Hamava working notes
 
-Read README.md first: it is the implementation plan and milestone record.
+Read README.md first for public usage and development documentation.
+When available, also read the private milestone notebook at
+`${XDG_DATA_HOME:-$HOME/.local/share}/hamava-private/MILESTONES.md`.
+Keep customer details, budgets, acceptance notes and internal release planning
+in that notebook, outside this repository; never copy it into public commits.
+The public README is not the internal milestone log.
 
-- This is a separate private project. Never add the unrelated Go repository.
+- This is a separate project. Never add the unrelated Go repository.
 - The homepage now plays the owner-supplied MP3 as an explicit guided demo.
   `/spotify` now uses browser PKCE and Spotify playback APIs. It needs a configured
   public Client ID and an authorized account; never imply real-account acceptance
-  until the owner has tested it. `/search` and `/paste` remain unsynced.
+  until the owner has tested it. The owner has now reported successful real-account
+  use; do not infer coverage of unreported devices. `/search` and `/paste` remain unsynced.
 - Keep original LRCLIB timestamps outside AI input; validate and restore IDs.
 - Secrets never belong in VITE_* variables, browser code, commits, or logs.
 - Use Workers Static Assets and the bounded search/lyrics API. Inference stays on the browser CPU.

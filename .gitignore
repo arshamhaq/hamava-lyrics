@@ -15,3 +15,9 @@ research-private/
 
 # Verified model/runtime downloads, prepared automatically before dev/build.
 public/engine-assets/
+
+# Private planning belongs outside the repository. These guard against stray copies.
+.private/
+docs/private/
+README.private.md
+MILESTONES.private.md
